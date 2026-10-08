@@ -38,10 +38,11 @@ function mezclarBlanco(hex, t) {
 }
 
 function escalaDeMarca(base, pasos) {
-    const n = pasos || 8;
+    const n = Math.max(pasos || 8, 1);
     const escala = [];
     for (let i = 0; i < n; i++) {
-        escala.push(mezclarBlanco(base, i / (n - 1)));
+        const t = n === 1 ? 0 : 0.85 * (i / (n - 1));
+        escala.push(mezclarBlanco(base, t));
     }
     return escala;
 }
@@ -145,8 +146,8 @@ function renderizarGraficoVentas(sucursales) {
 
     const ctx = canvas.getContext('2d');
     const paleta = paletaDeMarca();
-    const totalBarras = Math.max(datos.length, 1);
-    const coloresBarras = escalaDeMarca(paleta.primary, totalBarras).reverse();
+    const maxVenta = Math.max(0, ...datos);
+    const coloresBarras = datos.map(v => mezclarBlanco(paleta.primary, maxVenta > 0 ? 0.85 * (1 - v / maxVenta) : 0.85));
     chartVentasSucursales = new Chart(ctx, {
         type: 'bar',
         data: {
