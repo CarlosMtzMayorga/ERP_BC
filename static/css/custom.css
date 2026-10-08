@@ -22,6 +22,15 @@ th, td { white-space: nowrap; }
 #sidebarMainNav .nav-tab { flex-shrink: 0; display: flex; }
 #sidebarMainNav .dropdown-item { width: 100%; display: flex; }
 
+/* Compactación moderada de los botones de primer nivel para caber en una fila */
+#sidebarMainNav .nav-tab {
+    font-size: 11px;
+    padding: 8px 10px;
+    gap: 6px;
+}
+#sidebarMainNav .nav-tab > div { gap: 6px; }
+#sidebarMainNav .nav-tab svg { width: 15px; height: 15px; }
+
 /* Ítem activo unificado con el color de la empresa */
 .sidebar-item.tab-activo {
     background: var(--theme-gradient) !important;
@@ -29,11 +38,6 @@ th, td { white-space: nowrap; }
     box-shadow: 0 8px 20px -6px var(--theme-glow) !important;
 }
 .sidebar-item.tab-activo svg { color: #fff !important; }
-
-/* Menú colapsado (hamburguesa): oculta solo la fila de navegación */
-#mainSidebar.collapsed #sidebarMainNav {
-    display: none !important;
-}
 
 /* ================= ACORDEÓN DINÁMICO DE SUBMENÚS ================= */
 .submenu-accordion {

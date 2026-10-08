@@ -102,7 +102,7 @@
                 </div>
 
                 <nav id="sidebarMainNav" class="flex items-center flex-1 min-w-0">
-                    <div id="sidebarNavScroll" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1 min-w-0">
+                    <div id="sidebarNavScroll" class="flex items-center flex-wrap gap-1 flex-1 min-w-0">
                     <!-- MÓDULO 0: INICIO / TABLERO PRINCIPAL -->
                     <div id="sidebarItemDashboard" class="flex-shrink-0">
                         <button type="button" id="tabBtnDashboard" class="sidebar-item nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition cursor-pointer">
@@ -326,12 +326,6 @@
             
             <header class="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between flex-shrink-0 transition-all shadow-xs">
                 <div class="flex items-center gap-3">
-                    <button type="button" id="btnToggleSidebar" title="Contraer / Expandir Menú" 
-                            class="p-2 -ml-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer flex items-center justify-center active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </button>
                     <div class="flex items-center gap-1.5 text-xs font-semibold">
                         <span id="headerEmpresaTag" class="px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200 font-black text-[11px] tracking-wide">BC Refaccionarias</span>
                         <span class="text-slate-300">/</span>

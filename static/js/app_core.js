@@ -330,13 +330,16 @@
         // ================= CONTROL DE SIDEBAR / NAVEGACIÓN Y ACORDEÓN =================
         let currentActiveTabId = 'modulo1';
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            if (!sidebar) return;
-            const isCollapsed = sidebar.classList.toggle('collapsed');
-            try {
-                localStorage.setItem('erp_sidebar_collapsed', isCollapsed ? '1' : '0');
-            } catch(e) {}
+        function posicionarPanelDentroVentana(panel) {
+            if (!panel) return;
+            const rect = panel.getBoundingClientRect();
+            const separacion = 8;
+            if (rect.right > window.innerWidth - separacion) {
+                const delta = (window.innerWidth - rect.width - separacion) - rect.left;
+                panel.style.left = Math.min(0, delta) + 'px';
+            } else {
+                panel.style.left = '';
+            }
         }
 
         function abrirAcordeonSubmenu(moduloPadre) {
@@ -363,27 +366,10 @@
                     if (isOpen) item.chev.classList.add('rotate-180');
                     else item.chev.classList.remove('rotate-180');
                 }
-            });
-        }
-
-        function initSidebarEvents() {
-            const btnToggle = document.getElementById('btnToggleSidebar');
-            const btnCollapse = document.getElementById('btnCollapseSidebar');
-            if (btnToggle) {
-                btnToggle.removeEventListener('click', toggleSidebar);
-                btnToggle.addEventListener('click', toggleSidebar);
-            }
-            if (btnCollapse) {
-                btnCollapse.removeEventListener('click', toggleSidebar);
-                btnCollapse.addEventListener('click', toggleSidebar);
-            }
-
-            try {
-                if (localStorage.getItem('erp_sidebar_collapsed') === '1') {
-                    const sidebar = document.getElementById('mainSidebar');
-                    if (sidebar) sidebar.classList.add('collapsed');
+                if (isOpen && item.sub) {
+                    posicionarPanelDentroVentana(item.sub);
                 }
-            } catch(e) {}
+            });
         }
 
         const tabBtnDash = document.getElementById('tabBtnDashboard');
@@ -555,8 +541,7 @@
                     } else {
                         t.btn.className = "sidebar-item nav-tab tab-activo flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer";
                     }
-                    const svg = t.btn.querySelector('svg');
-                    if (svg) svg.className = "w-4 h-4 text-white";
+                    t.btn.querySelectorAll('svg').forEach(s => s.className = "w-4 h-4 text-white");
                     if (t.mod) t.mod.classList.remove('hidden');
                 } else {
                     if (enDropdown) {
@@ -566,10 +551,19 @@
                     } else {
                         t.btn.className = "sidebar-item nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition cursor-pointer";
                     }
-                    const svg = t.btn.querySelector('svg');
-                    if (svg) svg.className = "w-4 h-4 text-slate-400";
+                    t.btn.querySelectorAll('svg').forEach(s => s.className = "w-4 h-4 text-slate-400");
                 }
             });
+
+            // Resaltar también el grupo contenedor cuando el submódulo activo vive dentro de él
+            const grupoDelActivo = PADRE_DE[tabId] || (MAPA_SUBMODULOS[tabId] ? tabId : null);
+            if (grupoDelActivo) {
+                const grp = allTabBtns.find(t => t.isGroup && t.id === grupoDelActivo && t.btn);
+                if (grp && grp.btn && !grp.btn.classList.contains('tab-activo')) {
+                    grp.btn.className = "sidebar-item nav-tab tab-activo flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer";
+                    grp.btn.querySelectorAll('svg').forEach(s => s.className = "w-4 h-4 text-white");
+                }
+            }
 
             // Si es un módulo custom creado dinámicamente
             if (!tabConfigEncontrado && modCustom) {
@@ -2541,7 +2535,6 @@
 
 // ================= INICIALIZACIÓN GLOBAL =================
 document.addEventListener('DOMContentLoaded', () => {
-    initSidebarEvents();
     if (typeof initProveedorAutocomplete === 'function') initProveedorAutocomplete();
     if (typeof initBuscadorArticulos === 'function') initBuscadorArticulos();
     verificarSesion();
