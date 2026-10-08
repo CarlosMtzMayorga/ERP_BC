@@ -1,0 +1,167 @@
+[
+  {
+    "icono": "📊",
+    "id": "dashboard",
+    "nombre": "Inicio / Tablero",
+    "tipo": "modulo",
+    "visible": true
+  },
+  {
+    "icono": "🛒",
+    "id": "ventas",
+    "nombre": "Ventas",
+    "submodulos": [
+      {
+        "icono": "🛒",
+        "id": "puntoventa",
+        "nombre": "Punto de Venta",
+        "visible": true
+      },
+      {
+        "icono": "🤖",
+        "id": "bot_whatsapp",
+        "nombre": "Bot WhatsApp",
+        "visible": true
+      },
+      {
+        "icono": "🧾",
+        "id": "ventas_tickets",
+        "nombre": "Historial / Tickets",
+        "visible": true
+      },
+      {
+        "icono": "👨‍💼",
+        "id": "vendedores_comisiones",
+        "nombre": "Vendedores y Comisiones",
+        "visible": true
+      }
+    ],
+    "tipo": "agrupador",
+    "visible": true
+  },
+  {
+    "icono": "📦",
+    "id": "almacen",
+    "nombre": "Almacén",
+    "submodulos": [
+      {
+        "icono": "📱",
+        "id": "almacen_traspasos",
+        "nombre": "Control de Traspasos",
+        "visible": true
+      },
+      {
+        "icono": "📋",
+        "id": "almacen_stock",
+        "nombre": "Catálogo y Stock",
+        "visible": true
+      },
+      {
+        "icono": "📥",
+        "id": "almacen_recepcion",
+        "nombre": "Recepción de Compra (OC)",
+        "visible": true
+      },
+      {
+        "icono": "🔋",
+        "id": "almacen_cascos",
+        "nombre": "Control de Cascos",
+        "visible": true
+      }
+    ],
+    "tipo": "agrupador",
+    "visible": true
+  },
+  {
+    "icono": "🛍️",
+    "id": "compras",
+    "nombre": "Compras",
+    "submodulos": [
+      {
+        "icono": "📊",
+        "id": "resurtidos",
+        "nombre": "Resurtidos",
+        "visible": true
+      },
+      {
+        "icono": "📄",
+        "id": "modulo1",
+        "nombre": "Recepción de Compra",
+        "visible": true
+      },
+      {
+        "icono": "💲",
+        "id": "modulo2",
+        "nombre": "Listas de Precios",
+        "visible": true
+      },
+      {
+        "icono": "🔄",
+        "id": "modulo3",
+        "nombre": "Traspasos",
+        "visible": true
+      },
+      {
+        "icono": "🔍",
+        "id": "modulo4",
+        "nombre": "Buscador de Artículos",
+        "visible": true
+      },
+      {
+        "icono": "🚚",
+        "id": "compras_solicitudes",
+        "nombre": "Validar Traspasos PV",
+        "visible": true
+      }
+    ],
+    "tipo": "agrupador",
+    "visible": true
+  },
+  {
+    "icono": "🏢",
+    "id": "sucursales",
+    "nombre": "Sucursales",
+    "tipo": "modulo",
+    "visible": true
+  },
+  {
+    "icono": "💼",
+    "id": "administracion",
+    "nombre": "Administración",
+    "tipo": "modulo",
+    "visible": true
+  },
+  {
+    "icono": "⚙️",
+    "id": "configuracion",
+    "nombre": "Configuración",
+    "submodulos": [
+      {
+        "icono": "👥",
+        "id": "config_usuarios",
+        "nombre": "Usuarios y Permisos",
+        "visible": true
+      },
+      {
+        "icono": "🏢",
+        "id": "config_empresas",
+        "nombre": "Empresas",
+        "visible": true
+      },
+      {
+        "icono": "📑",
+        "id": "config_modulos",
+        "nombre": "Menús y Módulos",
+        "visible": true
+      },
+      {
+        "icono": "💼",
+        "id": "config_comisiones",
+        "nombre": "Políticas y Comisiones",
+        "visible": true
+      }
+    ],
+    "tipo": "agrupador",
+    "visible": true
+  }
+]

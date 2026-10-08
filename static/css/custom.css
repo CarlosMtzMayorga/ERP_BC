@@ -1,0 +1,330 @@
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+th, td { white-space: nowrap; }
+.wrap-desc { white-space: normal !important; min-width: 250px; }
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ================= BARRA SUPERIOR DE NAVEGACIÓN (TOP NAV) ================= */
+#mainSidebar {
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease-in-out;
+}
+
+#mainSidebar .custom-scrollbar::-webkit-scrollbar,
+#sidebarNavScroll.custom-scrollbar::-webkit-scrollbar { height: 0px; }
+
+#sidebarMainNav > .flex-shrink-0,
+#sidebarMainNav .flex-shrink-0 { flex-shrink: 0; }
+
+#sidebarMainNav .nav-tab { flex-shrink: 0; display: flex; }
+#sidebarMainNav .dropdown-item { width: 100%; display: flex; }
+
+/* Ítem activo unificado con el color de la empresa */
+.sidebar-item.tab-activo {
+    background: var(--theme-gradient) !important;
+    color: var(--theme-primary-contrast) !important;
+    box-shadow: 0 8px 20px -6px var(--theme-glow) !important;
+}
+.sidebar-item.tab-activo svg { color: #fff !important; }
+
+/* Menú colapsado (hamburguesa): oculta solo la fila de navegación */
+#mainSidebar.collapsed #sidebarMainNav {
+    display: none !important;
+}
+
+/* ================= ACORDEÓN DINÁMICO DE SUBMENÚS ================= */
+.submenu-accordion {
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.25s ease-in-out,
+                margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.submenu-accordion.closed {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+}
+
+.submenu-accordion.open {
+    max-height: 380px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Submenús dentro del top nav: panel desplegable bajo el grupo */
+#sidebarMainNav .submenu-accordion {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 250px;
+    background: #0b1220;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 14px;
+    padding: 6px;
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.5);
+    z-index: 70;
+}
+#sidebarMainNav .submenu-accordion.open {
+    max-height: 560px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+#sidebarMainNav .submenu-accordion.closed {
+    border-left-width: 0 !important;
+    border-right-width: 0 !important;
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+}
+
+@media print {
+    body * { visibility: hidden; }
+    #ticketPrintArea, #ticketPrintArea * { visibility: visible; }
+    #ticketPrintArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        margin: 0;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+    }
+}
+
+/* ==========================================================================
+   SISTEMA DE TEMAS DINÁMICOS MULTI-EMPRESA (BC REFACCIONES vs RT)
+   ========================================================================== */
+
+:root,
+[data-theme="bc"] {
+    --theme-primary: #dc2626;               /* Rojo característico BC */
+    --theme-primary-hover: #b91c1c;         /* Rojo oscuro hover */
+    --theme-primary-active: #991b1b;
+    --theme-primary-focus: #ef4444;
+    --theme-primary-rgb: 220, 38, 38;
+    --theme-primary-light: #fef2f2;         /* Fondo rojo suave */
+    --theme-primary-border: #fecaca;        /* Borde rojo suave */
+    --theme-primary-text: #b91c1c;          /* Texto rojo énfasis */
+    --theme-primary-contrast: #ffffff;      /* Texto de contraste */
+    --theme-gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    --theme-gradient-hover: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --theme-glow: rgba(220, 38, 38, 0.35);
+    --theme-ring: rgba(220, 38, 38, 0.35);
+    --theme-accent: #facc15;                 /* Amarillo/Oro del logo BC */
+    --theme-accent-text: #854d0e;
+    --theme-badge-bg: #fef2f2;
+    --theme-badge-border: #fecaca;
+    --theme-badge-text: #b91c1c;
+    --theme-header-border: #ef4444;
+    --theme-sidebar-active: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+[data-theme="rt"] {
+    --theme-primary: #f59e0b;               /* Ámbar / Oro RT */
+    --theme-primary-hover: #d97706;         /* Ámbar oscuro hover */
+    --theme-primary-active: #b45309;
+    --theme-primary-focus: #fbbf24;
+    --theme-primary-rgb: 245, 158, 11;
+    --theme-primary-light: #fffbeb;         /* Fondo ámbar suave */
+    --theme-primary-border: #fde68a;        /* Borde ámbar suave */
+    --theme-primary-text: #b45309;          /* Texto ámbar énfasis */
+    --theme-primary-contrast: #ffffff;      /* Texto de contraste */
+    --theme-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    --theme-gradient-hover: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    --theme-glow: rgba(245, 158, 11, 0.4);
+    --theme-ring: rgba(245, 158, 11, 0.4);
+    --theme-accent: #18181b;                 /* Negro atlético RT */
+    --theme-accent-text: #ffffff;
+    --theme-badge-bg: #fffbeb;
+    --theme-badge-border: #fde68a;
+    --theme-badge-text: #92400e;
+    --theme-header-border: #f59e0b;
+    --theme-sidebar-active: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* ================= PANTALLA DE LOGIN CON WALLPAPER PERSONALIZADO ================= */
+#loginScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background-color: #020617;
+    background-image: 
+        radial-gradient(circle at 50% 40%, rgba(15, 23, 42, 0.55) 0%, rgba(2, 6, 23, 0.90) 100%),
+        url('/static/img/login_bg.jpg') !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+#loginScreen.hidden {
+    display: none !important;
+}
+
+.glass-card-login {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 
+        0 25px 60px -15px rgba(0, 0, 0, 0.65),
+        0 0 50px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ================= CLASES DE UTILIDAD PARA TEMA DINÁMICO ================= */
+.btn-theme-primary {
+    background: var(--theme-gradient) !important;
+    color: var(--theme-primary-contrast) !important;
+    box-shadow: 0 10px 25px -5px var(--theme-glow) !important;
+    border: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-theme-primary:hover {
+    background: var(--theme-gradient-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -5px var(--theme-glow) !important;
+}
+
+.btn-theme-primary:active {
+    transform: scale(0.98);
+}
+
+.badge-theme-primary {
+    background-color: var(--theme-badge-bg) !important;
+    color: var(--theme-badge-text) !important;
+    border: 1px solid var(--theme-badge-border) !important;
+}
+
+.text-theme-primary {
+    color: var(--theme-primary) !important;
+}
+
+.border-theme-primary {
+    border-color: var(--theme-primary) !important;
+}
+
+.bg-theme-primary {
+    background-color: var(--theme-primary) !important;
+}
+
+/* Fondo/borde/texto suaves de marca para tarjetas limpias */
+.bg-theme-light {
+    background-color: var(--theme-primary-light) !important;
+}
+.text-theme-deep {
+    color: var(--theme-primary-text) !important;
+}
+.border-theme-soft {
+    border-color: var(--theme-primary-border) !important;
+}
+.ring-theme-soft {
+    box-shadow: 0 0 0 3px var(--theme-ring) !important;
+}
+.hover-theme-soft:hover {
+    background-color: var(--theme-primary-light) !important;
+    border-color: var(--theme-primary-border) !important;
+}
+.btn-theme-ghost {
+    background-color: var(--theme-primary-light) !important;
+    color: var(--theme-primary-text) !important;
+    border: 1px solid var(--theme-primary-border) !important;
+}
+
+/* Barra de progreso dinámica */
+#progressBar {
+    background-color: var(--theme-primary) !important;
+}
+#progressPercent {
+    color: var(--theme-primary) !important;
+}
+#progressContainer {
+    border-color: var(--theme-primary-border) !important;
+}
+#progressContainer .animate-ping {
+    background-color: var(--theme-primary) !important;
+}
+
+/* Breadcrumb dinámico */
+#breadcrumbCurrent {
+    background-color: var(--theme-badge-bg) !important;
+    color: var(--theme-badge-text) !important;
+    border-color: var(--theme-badge-border) !important;
+}
+
+/* Avatar de usuario dinámico */
+#userAvatar {
+    background: var(--theme-gradient) !important;
+}
+
+/* Focus dinámico en inputs del login y formularios */
+#loginForm input:focus {
+    border-color: var(--theme-primary) !important;
+    box-shadow: 0 0 0 3px var(--theme-ring) !important;
+}
+
+/* ================= ADAPTACIÓN AUTOMÁTICA GLOBAL PARA TEMA RT ================= */
+[data-theme="rt"] .bg-red-600:not(.bg-danger-keep) {
+    background-color: #f59e0b !important;
+}
+[data-theme="rt"] .hover\:bg-red-700:hover:not(.hover-danger-keep) {
+    background-color: #d97706 !important;
+}
+[data-theme="rt"] .hover\:bg-red-500:hover:not(.hover-danger-keep) {
+    background-color: #fbbf24 !important;
+}
+[data-theme="rt"] .text-red-600:not(.text-danger-keep),
+[data-theme="rt"] .text-red-700:not(.text-danger-keep) {
+    color: #b45309 !important;
+}
+[data-theme="rt"] .text-red-500:not(.text-danger-keep) {
+    color: #f59e0b !important;
+}
+[data-theme="rt"] .bg-red-50:not(.bg-danger-keep) {
+    background-color: #fffbeb !important;
+}
+[data-theme="rt"] .bg-red-100:not(.bg-danger-keep),
+[data-theme="rt"] .bg-red-100\/80:not(.bg-danger-keep) {
+    background-color: #fef3c7 !important;
+}
+[data-theme="rt"] .border-red-100:not(.border-danger-keep),
+[data-theme="rt"] .border-red-200:not(.border-danger-keep),
+[data-theme="rt"] .border-red-100\/80:not(.border-danger-keep),
+[data-theme="rt"] .border-red-200\/80:not(.border-danger-keep) {
+    border-color: #fde68a !important;
+}
+[data-theme="rt"] .shadow-red-600\/25,
+[data-theme="rt"] .shadow-red-600\/20 {
+    box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.35) !important;
+}
+[data-theme="rt"] .from-red-600 {
+    --tw-gradient-from: #f59e0b var(--tw-gradient-from-position) !important;
+}
+[data-theme="rt"] .to-rose-600 {
+    --tw-gradient-to: #d97706 var(--tw-gradient-to-position) !important;
+}
+[data-theme="rt"] .focus\:border-red-500:focus {
+    border-color: #f59e0b !important;
+}
+[data-theme="rt"] .focus\:ring-red-500\/20:focus,
+[data-theme="rt"] .focus\:ring-red-500:focus {
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35) !important;
+}
+

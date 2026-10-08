@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Datos locales y secretos
+*.db
+*.db-wal
+*.db-shm
+.flask_secret
+app/.microsip_conn.json
+config_empresas.json
+
+# Registros y artefactos generados
+*.log
+index.html.gz
+
+# Editor / SO
+.vscode/
+.idea/
+Thumbs.db
