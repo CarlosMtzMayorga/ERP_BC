@@ -47,6 +47,39 @@ function escalaDeMarca(base, pasos) {
     return escala;
 }
 
+function generarPaletaLineasCorporativa(hexBase) {
+    const [r, g, b] = hexToRgb(hexBase);
+    // Para el rojo institucional estándar de BC Refaccionarias:
+    const esRojoBC = Math.abs(r - 220) < 40 && g < 75 && b < 75;
+    if (esRojoBC) {
+        return [
+            hexBase,    // #1: Rojo BC insignia (Top 1)
+            '#991b1b',  // #2: Borgoña oscuro
+            '#ef4444',  // #3: Carmín vibrante
+            '#7f1d1d',  // #4: Vino tinto profundo
+            '#b91c1c',  // #5: Carmesí institucional
+            '#f87171',  // #6: Coral claro
+            '#450a0a',  // #7: Granate carbón
+            '#1e293b',  // #8: Pizarra oscuro
+            '#475569',  // #9: Pizarra medio
+            '#94a3b8'   // #10: Gris neutro
+        ];
+    }
+    // Para cualquier otro tema activo (tonos de la marca + neutros de alto contraste):
+    return [
+        hexBase,
+        `rgb(${Math.round(r * 0.7)}, ${Math.round(g * 0.7)}, ${Math.round(b * 0.7)})`,
+        `rgb(${Math.min(255, Math.round(r + (255 - r) * 0.25))}, ${Math.min(255, Math.round(g + (255 - g) * 0.25))}, ${Math.min(255, Math.round(b + (255 - b) * 0.25))})`,
+        `rgb(${Math.round(r * 0.5)}, ${Math.round(g * 0.5)}, ${Math.round(b * 0.5)})`,
+        `rgb(${Math.round(r * 0.85)}, ${Math.round(g * 0.85)}, ${Math.round(b * 0.85)})`,
+        `rgb(${Math.min(255, Math.round(r + (255 - r) * 0.45))}, ${Math.min(255, Math.round(g + (255 - g) * 0.45))}, ${Math.min(255, Math.round(b + (255 - b) * 0.45))})`,
+        `rgb(${Math.round(r * 0.35)}, ${Math.round(g * 0.35)}, ${Math.round(b * 0.35)})`,
+        '#1e293b',
+        '#475569',
+        '#94a3b8'
+    ];
+}
+
 async function cargarDashboard(periodo = 'mes_actual') {
     const loader = document.getElementById('dashboardLoader');
     const content = document.getElementById('dashboardContent');
@@ -214,32 +247,37 @@ function renderizarGraficoTendencia(tendencia) {
         elBadge.textContent = tendencia.badge;
     }
 
-    // Paleta corporativa sobria empatada al sistema (Top 1 lleva el color de marca del grupo)
+    // Paleta corporativa sobria monocromática empatada a las demás gráficas y tarjetas
     const paleta = paletaDeMarca();
-    const COLORES_LINEAS = [
-        paleta.primary,      // #1: Primario de marca corporativo (Rojo BC / tema activo)
-        '#0f172a',          // #2: Slate carbón institucional
-        '#2563eb',          // #3: Azul corporativo
-        '#059669',          // #4: Esmeralda financiero
-        '#d97706',          // #5: Ámbar / Bronce
-        '#6366f1',          // #6: Índigo refinado
-        '#0891b2',          // #7: Teal / Petróleo
-        '#e11d48',          // #8: Carmesí profundo
-        '#475569',          // #9: Pizarra medio
-        '#94a3b8'           // #10: Gris neutro
-    ];
+    const COLORES_LINEAS = typeof generarPaletaLineasCorporativa === 'function'
+        ? generarPaletaLineasCorporativa(paleta.primary)
+        : [
+            paleta.primary,      // #1: Primario de marca (Rojo oficial BC)
+            '#991b1b',          // #2: Borgoña profundo
+            '#ef4444',          // #3: Carmín vibrante
+            '#7f1d1d',          // #4: Vino tinto intenso
+            '#b91c1c',          // #5: Carmesí institucional
+            '#f87171',          // #6: Coral claro
+            '#450a0a',          // #7: Granate carbón
+            '#1e293b',          // #8: Pizarra carbón neutro
+            '#475569',          // #9: Pizarra medio
+            '#94a3b8'           // #10: Gris neutro
+        ];
 
     const sucursales = (tendencia.sucursales || []).slice(0, 10);
     const datasets = sucursales.map((suc, idx) => {
         const color = COLORES_LINEAS[idx % COLORES_LINEAS.length];
+        const isDashed = idx >= 7;
+        const cleanName = (suc.nombre || '').replace(/^Sucursal\s+/i, '');
         return {
-            label: suc.nombre,
+            label: cleanName || suc.nombre,
             data: suc.valores || [],
             borderColor: color,
             backgroundColor: color,
-            borderWidth: 2,
+            borderWidth: idx === 0 ? 3 : (idx < 5 ? 2.2 : 1.8),
+            borderDash: isDashed ? [5, 4] : undefined,
             tension: 0.35,
-            pointRadius: 3,
+            pointRadius: idx === 0 ? 4 : (idx < 5 ? 3 : 2.5),
             pointHoverRadius: 6,
             fill: false,
             // Todos los primeros 10 activos para que los nombres no se tachen ni se encimen
