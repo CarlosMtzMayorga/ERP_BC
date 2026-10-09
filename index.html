@@ -376,9 +376,14 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <div id="connStatusBox" class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 px-3.5 py-1.5 rounded-full border border-slate-200 text-xs transition shadow-xs">
-                        <span id="connStatusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span id="empresaNombreOficial" class="font-bold text-slate-700 text-[11px]">Conectando...</span>
+                    <div id="connStatusBox" class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100/90 px-3.5 py-1.5 rounded-full border border-slate-200 text-xs transition shadow-xs">
+                        <div class="relative flex items-center justify-center">
+                            <span id="connStatusPing" class="absolute w-3.5 h-3.5 rounded-full bg-emerald-400 opacity-75 animate-ping hidden"></span>
+                            <span id="connStatusDot" class="relative w-3.5 h-3.5 rounded-full bg-amber-500 ring-2 ring-white shadow-xs"></span>
+                        </div>
+                        <span id="connStatusText" class="font-black text-[11px] text-amber-700 tracking-wide">Conectando...</span>
+                        <span class="text-slate-300 select-none">•</span>
+                        <span id="empresaNombreOficial" class="font-bold text-slate-700 text-[11px] max-w-[280px] truncate" title="Empresa activa">Conectando...</span>
                     </div>
 
                     <button type="button" id="btnSyncOdbc" class="btn-press inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition cursor-pointer">
@@ -6595,7 +6600,7 @@
     <!-- SCRIPT DE CONTROL -->
     <!-- SCRIPTS MODULARES -->
     <script src="/static/js/paleta_tema.js?v=20261009_v6"></script>
-    <script src="/static/js/app_core.js?v=20261009_v6"></script>
+    <script src="/static/js/app_core.js?v=20261009_v7"></script>
     <script src="/static/js/modulo_dashboard.js?v=20261009_v7"></script>
     <script src="/static/js/modulo_ventas.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_pv.js?v=20261009_v6"></script>

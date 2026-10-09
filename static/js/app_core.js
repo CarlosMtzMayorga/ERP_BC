@@ -2524,12 +2524,26 @@
 
         function renderizarEstado(estado, titulo) {
             const dot = document.getElementById('connStatusDot');
-            document.getElementById('empresaNombreOficial').textContent = titulo;
+            const ping = document.getElementById('connStatusPing');
+            const txt = document.getElementById('connStatusText');
+            const empNombre = document.getElementById('empresaNombreOficial');
+            if (empNombre) {
+                empNombre.textContent = titulo;
+                empNombre.title = titulo;
+            }
             const xmlInput = document.getElementById('xmlFile');
             const xlsInput = document.getElementById('excelFile');
 
             if (estado === 'ok') {
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                if (dot) dot.className = 'relative w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs';
+                if (ping) {
+                    ping.className = 'absolute w-3.5 h-3.5 rounded-full bg-emerald-400 opacity-75 animate-ping';
+                    ping.classList.remove('hidden');
+                }
+                if (txt) {
+                    txt.textContent = 'En línea';
+                    txt.className = 'font-black text-[11px] text-emerald-700 tracking-wide';
+                }
                 if (xmlInput) {
                     xmlInput.disabled = false;
                     xmlInput.classList.remove('cursor-not-allowed', 'opacity-50');
@@ -2541,7 +2555,12 @@
                 const aviso = document.getElementById('xmlAvisoBloqueo');
                 if (aviso) aviso.classList.add('hidden');
             } else if (estado === 'error') {
-                dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+                if (dot) dot.className = 'relative w-3.5 h-3.5 rounded-full bg-rose-500 ring-2 ring-white shadow-xs';
+                if (ping) ping.classList.add('hidden');
+                if (txt) {
+                    txt.textContent = 'Desconectado';
+                    txt.className = 'font-black text-[11px] text-rose-700 tracking-wide';
+                }
                 if (xmlInput) {
                     xmlInput.disabled = true;
                     xmlInput.classList.add('cursor-not-allowed', 'opacity-50');
@@ -2553,7 +2572,12 @@
                 const aviso = document.getElementById('xmlAvisoBloqueo');
                 if (aviso) aviso.classList.remove('hidden');
             } else {
-                dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+                if (dot) dot.className = 'relative w-3.5 h-3.5 rounded-full bg-amber-500 ring-2 ring-white animate-pulse shadow-xs';
+                if (ping) ping.classList.add('hidden');
+                if (txt) {
+                    txt.textContent = 'Conectando...';
+                    txt.className = 'font-black text-[11px] text-amber-700 tracking-wide';
+                }
             }
         }
 
@@ -2656,7 +2680,7 @@
 
                 actualizarProgreso(100, 'Empresa Sincronizada', nomOficial);
                 setTimeout(ocultarProgreso, 800);
-                mostrarAlerta('success', `Se cambió la conexión a <strong>${nomOficial}</strong>. Todos los módulos (Ventas, Tableros, Almacenes y Compras) se han actualizado.`);
+                // Mensaje de alerta en banner ocultado por preferencia del usuario
             } catch (err) {
                 ocultarProgreso();
                 renderizarEstado('error', 'Error al conectar');
