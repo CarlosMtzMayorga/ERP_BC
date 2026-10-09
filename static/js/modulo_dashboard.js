@@ -4,7 +4,7 @@
  */
 
 let chartVentasSucursales = null;
-let chartAlmacenesStock = null;
+let chartTendenciaVentas = null;
 let dashboardDataCache = null;
 
 function formatearMoneda(val) {
@@ -67,7 +67,7 @@ async function cargarDashboard(periodo = 'mes_actual') {
         dashboardDataCache = data;
         renderizarKPIs(data.kpis);
         renderizarGraficoVentas(data.ventas_sucursales);
-        renderizarGraficoAlmacenes(data.almacenes_stock);
+        renderizarGraficoTendencia(data.tendencia_ventas);
         cambiarCriterioTopArticulos(criterioTopArticulosActual);
         renderizarTablaSucursales(data.ventas_sucursales);
 
@@ -193,64 +193,125 @@ function renderizarGraficoVentas(sucursales) {
     });
 }
 
-function renderizarGraficoAlmacenes(almacenes) {
-    const canvas = document.getElementById('chartAlmacenesCanvas');
+function renderizarGraficoTendencia(tendencia) {
+    const canvas = document.getElementById('chartTendenciaCanvas');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    if (chartAlmacenesStock) {
-        chartAlmacenesStock.destroy();
+    if (chartTendenciaVentas) {
+        chartTendenciaVentas.destroy();
+        chartTendenciaVentas = null;
     }
 
-    // Top 7 almacenes + "Otros"
-    const topAlmacenes = (almacenes || []).slice(0, 7);
-    const otros = (almacenes || []).slice(7);
-    const sumaOtros = otros.reduce((acc, curr) => acc + curr.existencia, 0);
+    if (!tendencia) return;
 
-    const labels = topAlmacenes.map(a => a.nombre.replace('Sucursal ', ''));
-    const datos = topAlmacenes.map(a => a.existencia);
-
-    if (sumaOtros > 0) {
-        labels.push('Otras Sucursales');
-        datos.push(sumaOtros);
+    // Actualizar subtítulo y badge según la granularidad del período
+    const elSubtitulo = document.getElementById('subtituloTendenciaVentas');
+    if (elSubtitulo && tendencia.subtitulo) {
+        elSubtitulo.textContent = tendencia.subtitulo;
     }
+    const elBadge = document.getElementById('badgeGranularidadTendencia');
+    if (elBadge && tendencia.badge) {
+        elBadge.textContent = tendencia.badge;
+    }
+
+    // Paleta distintiva de colores para sucursales
+    const COLORES_LINEAS = [
+        '#2563eb', // Azul real
+        '#dc2626', // Rojo
+        '#059669', // Verde esmeralda
+        '#d97706', // Ámbar / naranja
+        '#7c3aed', // Púrpura
+        '#0891b2', // Cian / Teal
+        '#db2777', // Fucsia
+        '#4f46e5', // Índigo
+        '#ca8a04', // Mostaza dorada
+        '#16a34a', // Verde vivo
+        '#ea580c', // Naranja quemado
+        '#9333ea', // Violeta intenso
+        '#0284c7', // Azul cielo
+        '#64748b'  // Pizarra
+    ];
+
+    const sucursales = tendencia.sucursales || [];
+    const datasets = sucursales.map((suc, idx) => {
+        const color = COLORES_LINEAS[idx % COLORES_LINEAS.length];
+        return {
+            label: suc.nombre,
+            data: suc.valores || [],
+            borderColor: color,
+            backgroundColor: color,
+            borderWidth: 2,
+            tension: 0.35,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: false,
+            // Las 6 primeras sucursales visibles de inicio; resto activables con clic en leyenda
+            hidden: idx >= 6
+        };
+    });
 
     const ctx = canvas.getContext('2d');
-    const paleta = paletaDeMarca();
-    const escala = escalaDeMarca(paleta.primary, 7);
-    const fondoAlmacenes = escala.concat([paleta.gris]);
-    chartAlmacenesStock = new Chart(ctx, {
-        type: 'doughnut',
+    chartTendenciaVentas = new Chart(ctx, {
+        type: 'line',
         data: {
-            labels: labels,
-            datasets: [{
-                data: datos,
-                backgroundColor: fondoAlmacenes,
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
+            labels: tendencia.etiquetas || [],
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: 'top',
+                    align: 'start',
                     labels: {
-                        boxWidth: 12,
-                        font: { size: 11, weight: 'bold' },
-                        color: '#475569'
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 10, weight: 'bold' },
+                        color: '#334155',
+                        padding: 10
                     }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleFont: { size: 12, weight: 'bold' },
+                    bodyFont: { size: 11 },
+                    padding: 10,
+                    cornerRadius: 8,
                     callbacks: {
                         label: function(context) {
-                            const val = context.parsed;
-                            return ` ${context.label}: ${formatearNumero(val)} pzas`;
+                            return ` ${context.dataset.label}: ${formatearMoneda(context.parsed.y)}`;
                         }
                     }
                 }
             },
-            cutout: '65%'
+            scales: {
+                x: {
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        font: { size: 10, weight: '600' },
+                        color: '#64748b',
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                },
+                y: {
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value));
+                        },
+                        font: { size: 10, weight: 'bold' },
+                        color: '#64748b'
+                    }
+                }
+            }
         }
     });
 }

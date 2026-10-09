@@ -48,9 +48,205 @@ def resolver_rango_fechas(periodo):
     elif periodo == 'anio':
         ini = datetime.date(hoy.year, 1, 1)
         return ini.strftime("%Y-%m-%d"), hoy.strftime("%Y-%m-%d")
-    else: # mes actual por defecto
+    else:
         ini = hoy.replace(day=1)
         return ini.strftime("%Y-%m-%d"), hoy.strftime("%Y-%m-%d")
+
+MESES_ABR = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+def obtener_tendencia_ventas(periodo, cur):
+    hoy = datetime.date.today()
+    
+    if periodo == 'hoy':
+        hora_max = max(20, datetime.datetime.now().hour)
+        horas = list(range(8, hora_max + 1))
+        etiquetas = [f"{h:02d}:00" for h in horas]
+        
+        cur.execute("""
+            SELECT 
+                EXTRACT(HOUR FROM p.HORA) AS HORA,
+                a.ALMACEN_ID,
+                TRIM(a.NOMBRE) AS SUCURSAL,
+                SUM(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) AS TOTAL
+            FROM DOCTOS_PV p
+            JOIN ALMACENES a ON a.ALMACEN_ID = p.ALMACEN_ID
+            WHERE p.FECHA = CURRENT_DATE
+              AND p.ESTATUS <> 'C'
+              AND p.TIPO_DOCTO IN ('V', 'F')
+            GROUP BY EXTRACT(HOUR FROM p.HORA), a.ALMACEN_ID, a.NOMBRE
+        """)
+        filas = cur.fetchall()
+        
+        suc_map = {}
+        for r in filas:
+            h = int(r[0] or 0)
+            alm_id = int(r[1])
+            nom = r[2].replace('Sucursal ', '')
+            tot = float(r[3] or 0)
+            if alm_id not in suc_map:
+                suc_map[alm_id] = {'nombre': nom, 'ventas_por_slot': {}, 'total': 0.0}
+            suc_map[alm_id]['ventas_por_slot'][h] = suc_map[alm_id]['ventas_por_slot'].get(h, 0.0) + tot
+            suc_map[alm_id]['total'] += tot
+            
+        datasets = []
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+            valores = [round(s['ventas_por_slot'].get(h, 0.0), 2) for h in horas]
+            datasets.append({
+                'almacen_id': alm_id,
+                'nombre': s['nombre'],
+                'valores': valores,
+                'total': round(s['total'], 2)
+            })
+            
+        return {
+            'tipo': 'horas',
+            'subtitulo': 'Ventas por hora durante el día de hoy',
+            'badge': 'Por Hora',
+            'etiquetas': etiquetas,
+            'sucursales': datasets
+        }
+        
+    elif periodo in ('anio', '6meses'):
+        if periodo == 'anio':
+            ini_anio = hoy.year
+            mes_ini = 1
+            mes_fin = hoy.month
+            meses_list = [(ini_anio, m) for m in range(mes_ini, mes_fin + 1)]
+            etiquetas = [MESES_ABR[m] for _, m in meses_list]
+            f_ini_str = f"{ini_anio}-01-01"
+            subtitulo = f"Ventas mensuales de {ini_anio} (Ene - {MESES_ABR[hoy.month]})"
+        else:
+            meses_list = []
+            f_ini = hoy - datetime.timedelta(days=183)
+            f_ini_str = f_ini.strftime("%Y-%m-%d")
+            curr = f_ini.replace(day=1)
+            while curr <= hoy:
+                meses_list.append((curr.year, curr.month))
+                if curr.month == 12:
+                    curr = curr.replace(year=curr.year + 1, month=1)
+                else:
+                    curr = curr.replace(month=curr.month + 1)
+            etiquetas = [f"{MESES_ABR[m]}" if y == hoy.year else f"{MESES_ABR[m]} '{str(y)[-2:]}" for y, m in meses_list]
+            subtitulo = "Ventas mensuales de los últimos 6 meses"
+            
+        cur.execute("""
+            SELECT 
+                EXTRACT(YEAR FROM p.FECHA) AS ANIO,
+                EXTRACT(MONTH FROM p.FECHA) AS MES,
+                a.ALMACEN_ID,
+                TRIM(a.NOMBRE) AS SUCURSAL,
+                SUM(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) AS TOTAL
+            FROM DOCTOS_PV p
+            JOIN ALMACENES a ON a.ALMACEN_ID = p.ALMACEN_ID
+            WHERE p.FECHA >= ? AND p.FECHA <= CURRENT_DATE
+              AND p.ESTATUS <> 'C'
+              AND p.TIPO_DOCTO IN ('V', 'F')
+            GROUP BY EXTRACT(YEAR FROM p.FECHA), EXTRACT(MONTH FROM p.FECHA), a.ALMACEN_ID, a.NOMBRE
+        """, (f_ini_str,))
+        filas = cur.fetchall()
+        
+        suc_map = {}
+        for r in filas:
+            y = int(r[0] or 0)
+            m = int(r[1] or 0)
+            alm_id = int(r[2])
+            nom = r[3].replace('Sucursal ', '')
+            tot = float(r[4] or 0)
+            if alm_id not in suc_map:
+                suc_map[alm_id] = {'nombre': nom, 'ventas_por_slot': {}, 'total': 0.0}
+            suc_map[alm_id]['ventas_por_slot'][(y, m)] = suc_map[alm_id]['ventas_por_slot'].get((y, m), 0.0) + tot
+            suc_map[alm_id]['total'] += tot
+            
+        datasets = []
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+            valores = [round(s['ventas_por_slot'].get((y, m), 0.0), 2) for y, m in meses_list]
+            datasets.append({
+                'almacen_id': alm_id,
+                'nombre': s['nombre'],
+                'valores': valores,
+                'total': round(s['total'], 2)
+            })
+            
+        return {
+            'tipo': 'meses',
+            'subtitulo': subtitulo,
+            'badge': 'Por Mes',
+            'etiquetas': etiquetas,
+            'sucursales': datasets
+        }
+
+    else:
+        # Semanas para cualquier periodo de rango de días (mes_actual, 30dias, 90dias, semana)
+        f_ini_str, f_fin_str = resolver_rango_fechas(periodo)
+        f_ini = datetime.datetime.strptime(f_ini_str, '%Y-%m-%d').date()
+        f_fin = datetime.datetime.strptime(f_fin_str, '%Y-%m-%d').date()
+        
+        intervalos = []
+        curr = f_ini
+        semana_num = 1
+        while curr <= f_fin:
+            next_curr = min(curr + datetime.timedelta(days=6), f_fin)
+            if curr.month == next_curr.month:
+                lbl = f"Sem {semana_num} ({curr.day:02d}-{next_curr.day:02d} {MESES_ABR[curr.month]})"
+            else:
+                lbl = f"Sem {semana_num} ({curr.day:02d} {MESES_ABR[curr.month]} - {next_curr.day:02d} {MESES_ABR[next_curr.month]})"
+            intervalos.append({
+                'label': lbl,
+                'inicio': curr,
+                'fin': next_curr
+            })
+            curr = next_curr + datetime.timedelta(days=1)
+            semana_num += 1
+            
+        etiquetas = [i['label'] for i in intervalos]
+        
+        cur.execute("""
+            SELECT 
+                p.FECHA,
+                a.ALMACEN_ID,
+                TRIM(a.NOMBRE) AS SUCURSAL,
+                SUM(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) AS TOTAL
+            FROM DOCTOS_PV p
+            JOIN ALMACENES a ON a.ALMACEN_ID = p.ALMACEN_ID
+            WHERE p.FECHA >= ? AND p.FECHA <= ?
+              AND p.ESTATUS <> 'C'
+              AND p.TIPO_DOCTO IN ('V', 'F')
+            GROUP BY p.FECHA, a.ALMACEN_ID, a.NOMBRE
+        """, (f_ini_str, f_fin_str))
+        filas = cur.fetchall()
+        
+        suc_map = {}
+        for r in filas:
+            fec = r[0]
+            alm_id = int(r[1])
+            nom = r[2].replace('Sucursal ', '')
+            tot = float(r[3] or 0)
+            if alm_id not in suc_map:
+                suc_map[alm_id] = {'nombre': nom, 'ventas_por_fecha': {}, 'total': 0.0}
+            suc_map[alm_id]['ventas_por_fecha'][fec] = suc_map[alm_id]['ventas_por_fecha'].get(fec, 0.0) + tot
+            suc_map[alm_id]['total'] += tot
+            
+        datasets = []
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+            valores = []
+            for inter in intervalos:
+                v_inter = sum(s['ventas_por_fecha'].get(d, 0.0) for d in s['ventas_por_fecha'] if inter['inicio'] <= d <= inter['fin'])
+                valores.append(round(v_inter, 2))
+            datasets.append({
+                'almacen_id': alm_id,
+                'nombre': s['nombre'],
+                'valores': valores,
+                'total': round(s['total'], 2)
+            })
+            
+        desc_periodo = "del mes en curso" if periodo == 'mes_actual' else f"de los últimos {periodo.replace('dias', ' días')}"
+        return {
+            'tipo': 'semanas',
+            'subtitulo': f"Ventas semanales {desc_periodo}",
+            'badge': 'Por Semana',
+            'etiquetas': etiquetas,
+            'sucursales': datasets
+        }
 
 @dashboard_bp.route('/api/dashboard/resumen', methods=['GET'])
 def get_dashboard_resumen():
@@ -214,6 +410,8 @@ def get_dashboard_resumen():
         else:
             cliente_estrella = {"nombre": "Sin datos", "tickets": 0, "total": 0.0}
 
+        tendencia_ventas = obtener_tendencia_ventas(periodo, cur)
+
         resultado = {
             "success": True,
             "periodo": periodo,
@@ -231,6 +429,7 @@ def get_dashboard_resumen():
             },
             "ventas_sucursales": sucursales_ventas,
             "almacenes_stock": almacenes_stock,
+            "tendencia_ventas": tendencia_ventas,
             "top_articulos": top_articulos_piezas,
             "top_articulos_piezas": top_articulos_piezas,
             "top_articulos_importe": top_articulos_importe

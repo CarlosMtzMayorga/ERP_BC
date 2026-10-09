@@ -510,8 +510,8 @@
 
                         <!-- Fila de Gráficos -->
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                            <!-- Gráfico Ventas por Sucursal (7 cols) -->
-                            <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                            <!-- Gráfico Ventas por Sucursal (6 cols) -->
+                            <div class="lg:col-span-6 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
                                         <h3 class="text-sm font-black text-slate-900">Ventas por Sucursal</h3>
@@ -524,17 +524,19 @@
                                 </div>
                             </div>
 
-                            <!-- Gráfico Distribución de Inventario en Almacenes (5 cols) -->
-                            <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                            <!-- Gráfico Tendencia de Ventas por Sucursal (6 cols) -->
+                            <div class="lg:col-span-6 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
-                                        <h3 class="text-sm font-black text-slate-900">Distribución de Inventario</h3>
-                                        <p class="text-xs text-slate-500 font-medium mt-0.5">Concentración de piezas en almacenes y CEDIS</p>
+                                        <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                            <span>📈</span> Tendencia de Ventas por Sucursal
+                                        </h3>
+                                        <p id="subtituloTendenciaVentas" class="text-xs text-slate-500 font-medium mt-0.5">Evolución en el tiempo por sucursal</p>
                                     </div>
-                                    <span class="text-[10px] font-bold bg-theme-light text-theme-deep px-2.5 py-1 rounded-full">Existencias</span>
+                                    <span id="badgeGranularidadTendencia" class="text-[10px] font-bold bg-theme-light text-theme-deep px-2.5 py-1 rounded-full">Evolución</span>
                                 </div>
                                 <div class="h-72 w-full relative">
-                                    <canvas id="chartAlmacenesCanvas"></canvas>
+                                    <canvas id="chartTendenciaCanvas"></canvas>
                                 </div>
                             </div>
                         </div>
