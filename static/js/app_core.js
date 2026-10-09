@@ -2665,6 +2665,8 @@
                 activarTab(tabFallback);
                 abrirAcordeonSubmenu('none');
             }
+        }
+
         // ================= MÓDULO NÓMINAS: RELOJ CHECADOR =================
         let timerRelojDigital = null;
 

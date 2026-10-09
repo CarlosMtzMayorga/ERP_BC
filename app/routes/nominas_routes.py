@@ -101,3 +101,4 @@ def obtener_checadas_hoy():
         })
     except Exception as e:
         return jsonify({"success": False, "error": f"Error al consultar checadas: {str(e)}"}), 500
+
