@@ -235,6 +235,16 @@ DEFAULT_MENU_ESTRUCTURA = [
         "visible": True
     },
     {
+        "id": "nominas",
+        "nombre": "Nóminas",
+        "icono": "⏱️",
+        "tipo": "agrupador",
+        "visible": True,
+        "submodulos": [
+            {"id": "nominas_reloj", "nombre": "Reloj Checador", "icono": "⏰", "visible": True}
+        ]
+    },
+    {
         "id": "configuracion",
         "nombre": "Configuración",
         "icono": "⚙️",

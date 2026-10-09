@@ -146,6 +146,21 @@
     "visible": true
   },
   {
+    "icono": "⏱️",
+    "id": "nominas",
+    "nombre": "Nóminas",
+    "tipo": "agrupador",
+    "visible": true,
+    "submodulos": [
+      {
+        "icono": "⏰",
+        "id": "nominas_reloj",
+        "nombre": "Reloj Checador",
+        "visible": true
+      }
+    ]
+  },
+  {
     "icono": "⚙️",
     "id": "configuracion",
     "nombre": "Configuración",

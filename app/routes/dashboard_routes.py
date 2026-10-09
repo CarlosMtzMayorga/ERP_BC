@@ -89,7 +89,7 @@ def obtener_tendencia_ventas(periodo, cur):
             suc_map[alm_id]['total'] += tot
             
         datasets = []
-        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True)[:10]:
             valores = [round(s['ventas_por_slot'].get(h, 0.0), 2) for h in horas]
             datasets.append({
                 'almacen_id': alm_id,
@@ -102,6 +102,56 @@ def obtener_tendencia_ventas(periodo, cur):
             'tipo': 'horas',
             'subtitulo': 'Ventas por hora durante el día de hoy',
             'badge': 'Por Hora',
+            'etiquetas': etiquetas,
+            'sucursales': datasets
+        }
+
+    elif periodo == 'mes_actual':
+        # Mes en curso: agrupado día a día desde el día 1 hasta el día actual
+        f_ini_str, _ = resolver_rango_fechas(periodo)
+        dias = list(range(1, hoy.day + 1))
+        etiquetas = [f"{d:02d} {MESES_ABR[hoy.month]}" for d in dias]
+
+        cur.execute("""
+            SELECT 
+                EXTRACT(DAY FROM p.FECHA) AS DIA,
+                a.ALMACEN_ID,
+                TRIM(a.NOMBRE) AS SUCURSAL,
+                SUM(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) AS TOTAL
+            FROM DOCTOS_PV p
+            JOIN ALMACENES a ON a.ALMACEN_ID = p.ALMACEN_ID
+            WHERE p.FECHA >= ? AND p.FECHA <= CURRENT_DATE
+              AND p.ESTATUS <> 'C'
+              AND p.TIPO_DOCTO IN ('V', 'F')
+            GROUP BY EXTRACT(DAY FROM p.FECHA), a.ALMACEN_ID, a.NOMBRE
+        """, (f_ini_str,))
+        filas = cur.fetchall()
+
+        suc_map = {}
+        for r in filas:
+            d = int(r[0] or 0)
+            alm_id = int(r[1])
+            nom = r[2].replace('Sucursal ', '')
+            tot = float(r[3] or 0)
+            if alm_id not in suc_map:
+                suc_map[alm_id] = {'nombre': nom, 'ventas_por_slot': {}, 'total': 0.0}
+            suc_map[alm_id]['ventas_por_slot'][d] = suc_map[alm_id]['ventas_por_slot'].get(d, 0.0) + tot
+            suc_map[alm_id]['total'] += tot
+
+        datasets = []
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True)[:10]:
+            valores = [round(s['ventas_por_slot'].get(d, 0.0), 2) for d in dias]
+            datasets.append({
+                'almacen_id': alm_id,
+                'nombre': s['nombre'],
+                'valores': valores,
+                'total': round(s['total'], 2)
+            })
+
+        return {
+            'tipo': 'dias',
+            'subtitulo': f"Ventas diarias de {MESES_ABR[hoy.month]} (Día 1 al {hoy.day})",
+            'badge': 'Por Día',
             'etiquetas': etiquetas,
             'sucursales': datasets
         }
@@ -158,7 +208,7 @@ def obtener_tendencia_ventas(periodo, cur):
             suc_map[alm_id]['total'] += tot
             
         datasets = []
-        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True)[:10]:
             valores = [round(s['ventas_por_slot'].get((y, m), 0.0), 2) for y, m in meses_list]
             datasets.append({
                 'almacen_id': alm_id,
@@ -176,7 +226,7 @@ def obtener_tendencia_ventas(periodo, cur):
         }
 
     else:
-        # Semanas para cualquier periodo de rango de días (mes_actual, 30dias, 90dias, semana)
+        # Semanas para cualquier periodo de rango de días (30dias, 90dias, semana)
         f_ini_str, f_fin_str = resolver_rango_fechas(periodo)
         f_ini = datetime.datetime.strptime(f_ini_str, '%Y-%m-%d').date()
         f_fin = datetime.datetime.strptime(f_fin_str, '%Y-%m-%d').date()
@@ -227,7 +277,7 @@ def obtener_tendencia_ventas(periodo, cur):
             suc_map[alm_id]['total'] += tot
             
         datasets = []
-        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True):
+        for alm_id, s in sorted(suc_map.items(), key=lambda x: x[1]['total'], reverse=True)[:10]:
             valores = []
             for inter in intervalos:
                 v_inter = sum(s['ventas_por_fecha'].get(d, 0.0) for d in s['ventas_por_fecha'] if inter['inicio'] <= d <= inter['fin'])
@@ -239,7 +289,7 @@ def obtener_tendencia_ventas(periodo, cur):
                 'total': round(s['total'], 2)
             })
             
-        desc_periodo = "del mes en curso" if periodo == 'mes_actual' else f"de los últimos {periodo.replace('dias', ' días')}"
+        desc_periodo = f"de los últimos {periodo.replace('dias', ' días')}" if 'dias' in periodo else "de la semana"
         return {
             'tipo': 'semanas',
             'subtitulo': f"Ventas semanales {desc_periodo}",

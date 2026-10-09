@@ -276,6 +276,25 @@
                             <span>Administración</span>
                         </button>
                     </div>
+                    <!-- MÓDULO NÓMINAS (Acordeón con Reloj Checador) -->
+                    <div id="sidebarItemNominas" class="relative flex-shrink-0">
+                        <button type="button" id="tabBtnNominas" class="sidebar-item nav-tab flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Nóminas</span>
+                            </div>
+                            <svg id="chevronNominas" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <div id="sidebarSubmenuNominas" class="submenu-accordion closed dropdown-panel">
+                            <div id="sidebarItemNominasReloj">
+                                <button type="button" id="tabBtnNominasReloj" onclick="activarTab('nominas_reloj')" class="sidebar-item dropdown-item flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Reloj Checador</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- MÓDULO CONFIGURACIÓN DEL SISTEMA (Acordeón con submódulos) -->
                     <div id="sidebarItemConfiguracion" class="relative flex-shrink-0">
@@ -528,12 +547,10 @@
                             <div class="lg:col-span-6 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
-                                        <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                                            <span>📈</span> Tendencia de Ventas por Sucursal
-                                        </h3>
+                                        <h3 class="text-sm font-black text-slate-900">Tendencia de Ventas por Sucursal</h3>
                                         <p id="subtituloTendenciaVentas" class="text-xs text-slate-500 font-medium mt-0.5">Evolución en el tiempo por sucursal</p>
                                     </div>
-                                    <span id="badgeGranularidadTendencia" class="text-[10px] font-bold bg-theme-light text-theme-deep px-2.5 py-1 rounded-full">Evolución</span>
+                                    <span id="badgeGranularidadTendencia" class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">Evolución</span>
                                 </div>
                                 <div class="h-72 w-full relative">
                                     <canvas id="chartTendenciaCanvas"></canvas>
@@ -3906,6 +3923,139 @@
                     </div>
                 </div>
 
+                <!-- ================= MÓDULO NÓMINAS: RELOJ CHECADOR ================= -->
+                <div id="moduloNominasContent" class="hidden space-y-4">
+                    <!-- Banner Header -->
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-teal-600/20">
+                                ⏱️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h1 class="text-xl font-black tracking-tight text-slate-900">Módulo de Nóminas</h1>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-100 text-teal-800">Reloj Checador</span>
+                                </div>
+                                <p class="text-xs text-slate-500 font-medium mt-1">Control de asistencia laboral, registro en tiempo real de entradas, salidas y turnos del personal.</p>
+                            </div>
+                        </div>
+
+                        <!-- Mini Reloj Digital en Vivo -->
+                        <div class="flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-sm">
+                            <div class="text-right">
+                                <div id="relojChecadorFecha" class="text-[11px] font-semibold text-slate-400">--</div>
+                                <div id="relojChecadorHora" class="text-xl font-black tracking-widest font-mono text-teal-400">00:00:00</div>
+                            </div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <!-- Layout: Registro de Checada (Izq) y Resumen/Bitácora (Der) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        <!-- Panel de Checada (5 cols) -->
+                        <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 pb-3">
+                                <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                    <span>⏰</span> Registrar Checada de Personal
+                                </h3>
+                                <p class="text-xs text-slate-500 font-medium mt-0.5">Selecciona el colaborador y marca la operación correspondiente</p>
+                            </div>
+
+                            <form id="formChecador" onsubmit="registrarChecadaPersonal(event)" class="space-y-3.5">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Sucursal / Centro de Trabajo</label>
+                                    <select id="relojSucursalSelect" class="w-full text-xs font-bold px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white">
+                                        <option value="">-- Seleccionar Sucursal --</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre o Clave de Empleado</label>
+                                    <input type="text" id="relojEmpleadoInput" placeholder="Ej. Juan Pérez o 1042" required class="w-full text-xs font-semibold px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1.5">Tipo de Movimiento</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button type="button" onclick="seleccionarTipoChecada('ENTRADA')" id="btnTipoEntrada" class="btn-tipo-checada p-2.5 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 font-black text-xs flex items-center justify-center gap-1.5 transition">
+                                            <span>🟢</span> Entrada Turno
+                                        </button>
+                                        <button type="button" onclick="seleccionarTipoChecada('SALIDA')" id="btnTipoSalida" class="btn-tipo-checada p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                            <span>🔴</span> Salida Turno
+                                        </button>
+                                        <button type="button" onclick="seleccionarTipoChecada('SALIDA_COMER')" id="btnTipoComer" class="btn-tipo-checada p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                            <span>🥪</span> Salida a Comer
+                                        </button>
+                                        <button type="button" onclick="seleccionarTipoChecada('REGRESO_COMER')" id="btnTipoRegreso" class="btn-tipo-checada p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                            <span>🔙</span> Regreso Comida
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="relojTipoChecadaVal" value="ENTRADA">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Notas u Observaciones (Opcional)</label>
+                                    <input type="text" id="relojNotasInput" placeholder="Ej. Permiso previo, horario especial..." class="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                </div>
+
+                                <div id="alertaRelojChecador" class="hidden text-xs p-2.5 rounded-xl font-bold"></div>
+
+                                <button type="submit" id="btnConfirmarChecada" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs rounded-xl shadow-md shadow-teal-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>⏱️</span> Confirmar Checada
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Bitácora de Checadas de Hoy (7 cols) -->
+                        <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                <div>
+                                    <h3 class="text-sm font-black text-slate-900">Bitácora de Asistencia Hoy</h3>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">Registro de checadas en tiempo real de todas las sucursales</p>
+                                </div>
+                                <button type="button" onclick="cargarChecadasHoy()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>🔄</span> Actualizar
+                                </button>
+                            </div>
+
+                            <!-- KPIs Rápidos de Asistencia -->
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                                    <span class="text-[10px] font-extrabold uppercase text-slate-400">Total Checadas</span>
+                                    <div id="kpiTotalChecadas" class="text-lg font-black text-slate-900 mt-0.5">0</div>
+                                </div>
+                                <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200/80">
+                                    <span class="text-[10px] font-extrabold uppercase text-emerald-700">Entradas Hoy</span>
+                                    <div id="kpiEntradasHoy" class="text-lg font-black text-emerald-800 mt-0.5">0</div>
+                                </div>
+                                <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200/80">
+                                    <span class="text-[10px] font-extrabold uppercase text-rose-700">Salidas Hoy</span>
+                                    <div id="kpiSalidasHoy" class="text-lg font-black text-rose-800 mt-0.5">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Registros -->
+                            <div class="overflow-x-auto max-h-80 border border-slate-200/80 rounded-2xl">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 sticky top-0">
+                                        <tr>
+                                            <th class="py-2.5 px-3">Hora</th>
+                                            <th class="py-2.5 px-3">Colaborador</th>
+                                            <th class="py-2.5 px-3">Sucursal</th>
+                                            <th class="py-2.5 px-3">Tipo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyChecadasHoy" class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td colspan="4" class="py-6 text-center text-slate-400 text-xs">Sin checadas registradas el día de hoy</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ================= MÓDULO CONFIGURACIÓN Y USUARIOS ================= -->
                 <div id="moduloConfiguracionContent" class="hidden space-y-4">
                     <!-- Header Banner -->
@@ -5557,6 +5707,31 @@
                                     <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Finanzas, cartera CXC, balance y proveedores.</div>
                                 </div>
                             </label>
+                        </div>
+
+                        <!-- MÓDULO NÓMINAS (Con submódulo Reloj Checador) -->
+                        <div class="border border-teal-200/80 rounded-2xl p-3.5 bg-teal-50/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-2 border-b border-teal-100">
+                                <label class="flex items-center gap-2 cursor-pointer font-black text-slate-900 text-xs select-none">
+                                    <input type="checkbox" name="permisoMod" value="nominas" data-modulo="nominas" onchange="alCambiarModuloPadre('nominas', this.checked)" class="chk-permiso-padre w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500">
+                                    <span class="flex items-center gap-1.5">
+                                        <span>⏱️</span>
+                                        <span>Módulo: Nóminas</span>
+                                    </span>
+                                </label>
+                                <span class="text-[9px] font-black uppercase tracking-wider text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded">1 Submódulo</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-3">
+                                <!-- Submódulo: Reloj Checador -->
+                                <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-teal-400 hover:shadow-xs transition cursor-pointer select-none">
+                                    <input type="checkbox" name="permisoMod" value="nominas_reloj" data-padre="nominas" onchange="alCambiarSubmodulo('nominas')" class="chk-permiso w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 mt-0.5">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>⏰</span> Submódulo: Reloj Checador</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Control de asistencia, entradas/salidas de personal y registro de checadas.</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         <!-- 5. MÓDULO CONFIGURACIÓN (Con 4 submódulos) -->

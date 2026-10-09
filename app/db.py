@@ -114,6 +114,25 @@ def init_sqlite():
         )
     """)
 
+    # Tabla de registro de asistencia / reloj checador (Módulo de Nóminas)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS reloj_checadas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT NOT NULL,
+            hora TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            colaborador_id TEXT DEFAULT '',
+            colaborador_nombre TEXT NOT NULL,
+            sucursal_id INTEGER DEFAULT NULL,
+            sucursal_nombre TEXT DEFAULT '',
+            notas TEXT DEFAULT '',
+            creado_en TEXT NOT NULL,
+            usuario_registro TEXT DEFAULT ''
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_reloj_fecha ON reloj_checadas(fecha)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_reloj_colaborador ON reloj_checadas(colaborador_nombre)")
+
     conn.commit()
     conn.close()
 

@@ -214,25 +214,22 @@ function renderizarGraficoTendencia(tendencia) {
         elBadge.textContent = tendencia.badge;
     }
 
-    // Paleta distintiva de colores para sucursales
+    // Paleta corporativa sobria empatada al sistema (Top 1 lleva el color de marca del grupo)
+    const paleta = paletaDeMarca();
     const COLORES_LINEAS = [
-        '#2563eb', // Azul real
-        '#dc2626', // Rojo
-        '#059669', // Verde esmeralda
-        '#d97706', // Ámbar / naranja
-        '#7c3aed', // Púrpura
-        '#0891b2', // Cian / Teal
-        '#db2777', // Fucsia
-        '#4f46e5', // Índigo
-        '#ca8a04', // Mostaza dorada
-        '#16a34a', // Verde vivo
-        '#ea580c', // Naranja quemado
-        '#9333ea', // Violeta intenso
-        '#0284c7', // Azul cielo
-        '#64748b'  // Pizarra
+        paleta.primary,      // #1: Primario de marca corporativo (Rojo BC / tema activo)
+        '#0f172a',          // #2: Slate carbón institucional
+        '#2563eb',          // #3: Azul corporativo
+        '#059669',          // #4: Esmeralda financiero
+        '#d97706',          // #5: Ámbar / Bronce
+        '#6366f1',          // #6: Índigo refinado
+        '#0891b2',          // #7: Teal / Petróleo
+        '#e11d48',          // #8: Carmesí profundo
+        '#475569',          // #9: Pizarra medio
+        '#94a3b8'           // #10: Gris neutro
     ];
 
-    const sucursales = tendencia.sucursales || [];
+    const sucursales = (tendencia.sucursales || []).slice(0, 10);
     const datasets = sucursales.map((suc, idx) => {
         const color = COLORES_LINEAS[idx % COLORES_LINEAS.length];
         return {
@@ -245,8 +242,8 @@ function renderizarGraficoTendencia(tendencia) {
             pointRadius: 3,
             pointHoverRadius: 6,
             fill: false,
-            // Las 6 primeras sucursales visibles de inicio; resto activables con clic en leyenda
-            hidden: idx >= 6
+            // Todos los primeros 10 activos para que los nombres no se tachen ni se encimen
+            hidden: false
         };
     });
 
@@ -267,14 +264,14 @@ function renderizarGraficoTendencia(tendencia) {
             plugins: {
                 legend: {
                     position: 'top',
-                    align: 'start',
+                    align: 'center',
                     labels: {
                         boxWidth: 8,
                         boxHeight: 8,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: { size: 10, weight: 'bold' },
-                        color: '#334155',
+                        font: { size: 10, weight: '700' },
+                        color: '#475569',
                         padding: 10
                     }
                 },

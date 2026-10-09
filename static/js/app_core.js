@@ -83,6 +83,7 @@
             almacen: ['almacen_traspasos', 'almacen_stock', 'almacen_recepcion', 'almacen_cascos', 'almacen_embarques'],
             compras: ['modulo1', 'modulo2', 'modulo3', 'modulo4', 'resurtidos', 'compras_solicitudes'],
             sucursales: ['sucursales_recepcion'],
+            nominas: ['nominas_reloj'],
             configuracion: ['bot_whatsapp', 'config_usuarios', 'config_empresas', 'config_modulos', 'config_comisiones']
         };
         let PADRE_DE = {};
@@ -225,6 +226,7 @@
                 resurtidos: ['sidebarItemResurtidos', 'cardLaunchpadResurtidos'],
                 compras_solicitudes: ['sidebarItemComprasSolicitudes', 'cardLaunchpadSolicitudesTraspasos'],
                 sucursales_recepcion: ['sidebarItemSucRecepcion', 'tabSubSucRecepcion'],
+                nominas_reloj: ['sidebarItemNominasReloj'],
                 config_usuarios: ['sidebarItemConfigUsuarios'],
                 config_empresas: ['sidebarItemConfigEmpresas'],
                 config_modulos: ['sidebarItemConfigModulos'],
@@ -238,6 +240,7 @@
                 almacen: 'sidebarItemAlmacen', 
                 compras: 'sidebarItemCompras',
                 sucursales: 'sidebarItemSucursales',
+                nominas: 'sidebarItemNominas',
                 configuracion: 'sidebarItemConfiguracion'
             };
             Object.keys(UI_MOD).forEach(m => {
@@ -401,6 +404,7 @@
                 almacen: { sub: document.getElementById('sidebarSubmenuAlmacen'), chev: document.getElementById('chevronAlmacen') },
                 compras: { sub: document.getElementById('sidebarSubmenuCompras'), chev: document.getElementById('chevronCompras') },
                 sucursales: { sub: document.getElementById('sidebarSubmenuSucursales'), chev: document.getElementById('chevronSucursales') },
+                nominas: { sub: document.getElementById('sidebarSubmenuNominas'), chev: document.getElementById('chevronNominas') },
                 configuracion: { sub: document.getElementById('sidebarSubmenuConfiguracion'), chev: document.getElementById('chevronConfiguracion') },
             };
 
@@ -465,6 +469,8 @@
         const tabBtnComprasSolicitudes = document.getElementById('tabBtnComprasSolicitudes');
         const tabBtnSuc = document.getElementById('tabBtnSucursales');
         const tabBtnSucRecepcion = document.getElementById('tabBtnSucRecepcion');
+        const tabBtnNominas = document.getElementById('tabBtnNominas');
+        const tabBtnNominasReloj = document.getElementById('tabBtnNominasReloj');
         const tabBtnAdmin = document.getElementById('tabBtnAdministracion');
         const tabBtnConfig = document.getElementById('tabBtnConfiguracion');
         const tabBtnConfigUsuarios = document.getElementById('tabBtnConfigUsuarios');
@@ -486,6 +492,7 @@
         const modResurtidos = document.getElementById('moduloResurtidosContent');
         const modComprasSolicitudes = document.getElementById('moduloComprasSolicitudesContent');
         const modSuc = document.getElementById('moduloSucursalesContent');
+        const modNominas = document.getElementById('moduloNominasContent');
         const modAdmin = document.getElementById('moduloAdministracionContent');
         const modConfig = document.getElementById('moduloConfiguracionContent');
         const modBotWhatsapp = document.getElementById('moduloBotWhatsappContent');
@@ -518,6 +525,8 @@
             compras_solicitudes: 'Validar Traspasos PV',
             sucursales: 'Sucursales',
             sucursales_recepcion: 'Recepción de Embarques',
+            nominas: 'Nóminas',
+            nominas_reloj: 'Reloj Checador',
             administracion: 'Administración del Negocio',
             configuracion: 'Configuración',
             config_usuarios: 'Usuarios y Permisos',
@@ -570,6 +579,8 @@
             { id: 'compras_solicitudes', btn: tabBtnComprasSolicitudes, mod: modComprasSolicitudes, isGroup: false, activeClass: 'text-white bg-amber-600 shadow-md shadow-amber-600/20' },
             { id: 'sucursales', btn: tabBtnSuc, mod: modSuc, isGroup: true, activeClass: 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' },
             { id: 'sucursales_recepcion', btn: tabBtnSucRecepcion, mod: modSuc, isGroup: false, activeClass: 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' },
+            { id: 'nominas', btn: tabBtnNominas, mod: modNominas, isGroup: true, activeClass: 'text-white bg-teal-600 shadow-md shadow-teal-600/20' },
+            { id: 'nominas_reloj', btn: tabBtnNominasReloj, mod: modNominas, isGroup: false, activeClass: 'text-white bg-teal-600 shadow-md shadow-teal-600/20' },
             { id: 'administracion', btn: tabBtnAdmin, mod: modAdmin, isGroup: false, activeClass: 'text-white bg-slate-900 shadow-md shadow-slate-900/30' },
             { id: 'configuracion', btn: tabBtnConfig, mod: modConfig, isGroup: true, activeClass: 'text-white bg-purple-700 shadow-md shadow-purple-700/20' },
             { id: 'config_usuarios', btn: tabBtnConfigUsuarios, mod: modConfig, isGroup: false, activeClass: 'text-white bg-purple-700 shadow-md shadow-purple-700/20' },
@@ -595,7 +606,7 @@
             abrirAcordeonSubmenu('none');
 
             // Ocultar primero todos los contenedores de módulos principales
-            [modDash, modPV, modVentas, modVendedoresComisiones, modAlm, modComp, mod1, mod2, mod3, mod4, modResurtidos, modComprasSolicitudes, modSuc, modAdmin, modConfig, modBotWhatsapp, modCustom].forEach(m => {
+            [modDash, modPV, modVentas, modVendedoresComisiones, modAlm, modComp, mod1, mod2, mod3, mod4, modResurtidos, modComprasSolicitudes, modSuc, modNominas, modAdmin, modConfig, modBotWhatsapp, modCustom].forEach(m => {
                 if (m) m.classList.add('hidden');
             });
 
@@ -729,6 +740,8 @@
                 if (typeof comprasCargarSolicitudesTraspasos === 'function') {
                     comprasCargarSolicitudesTraspasos();
                 }
+            } else if (tabId === 'nominas' || tabId === 'nominas_reloj') {
+                inicializarModuloNominas();
             }
         }
 
@@ -811,6 +824,19 @@
             });
         }
         if (tabBtnSucRecepcion) tabBtnSucRecepcion.addEventListener('click', () => activarTab('sucursales_recepcion'));
+
+        if (tabBtnNominas) {
+            tabBtnNominas.addEventListener('click', () => {
+                const subNom = document.getElementById('sidebarSubmenuNominas');
+                const isOpen = subNom && subNom.classList.contains('open');
+                if (isOpen) {
+                    abrirAcordeonSubmenu('none');
+                } else {
+                    abrirAcordeonSubmenu('nominas');
+                }
+            });
+        }
+        if (tabBtnNominasReloj) tabBtnNominasReloj.addEventListener('click', () => activarTab('nominas_reloj'));
 
 
 
@@ -951,6 +977,8 @@
                 'modulo3': { label: 'Traspasos', icon: '🚚', bg: 'bg-blue-50 text-blue-700 border-blue-200' },
                 'modulo4': { label: 'Buscador', icon: '🔍', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
                 'sucursales': { label: 'Sucursales', icon: '🏪', bg: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+                'nominas': { label: 'Nóminas (completo)', icon: '👥', bg: 'bg-teal-50 text-teal-800 border-teal-200' },
+                'nominas_reloj': { label: 'Reloj Checador', icon: '⏱️', bg: 'bg-teal-50 text-teal-700 border-teal-200' },
                 'bot_whatsapp': { label: 'Bot WhatsApp', icon: '💬', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
                 'configuracion': { label: 'Configuración', icon: '⚙️', bg: 'bg-purple-50 text-purple-700 border-purple-200' },
                 'config_usuarios': { label: 'Usuarios y Permisos', icon: '👥', bg: 'bg-purple-50 text-purple-700 border-purple-200' },
@@ -1647,6 +1675,7 @@
                 modulo2: 'sidebarItemM2',
                 modulo3: 'sidebarItemM3',
                 modulo4: 'sidebarItemM4',
+                nominas_reloj: 'sidebarItemNominasReloj',
                 config_usuarios: 'sidebarItemConfigUsuarios',
                 config_empresas: 'sidebarItemConfigEmpresas',
                 config_modulos: 'sidebarItemConfigModulos',
@@ -1658,6 +1687,7 @@
                 almacen: 'sidebarSubmenuAlmacen',
                 compras: 'sidebarSubmenuCompras',
                 sucursales: 'sidebarSubmenuSucursales',
+                nominas: 'sidebarSubmenuNominas',
                 configuracion: 'sidebarSubmenuConfiguracion'
             };
 
@@ -1667,6 +1697,7 @@
                 almacen: 'sidebarItemAlmacen',
                 compras: 'sidebarItemCompras',
                 sucursales: 'sidebarItemSucursales',
+                nominas: 'sidebarItemNominas',
                 administracion: 'sidebarItemAdministracion',
                 configuracion: 'sidebarItemConfiguracion'
             };
@@ -2634,7 +2665,213 @@
                 activarTab(tabFallback);
                 abrirAcordeonSubmenu('none');
             }
+        // ================= MÓDULO NÓMINAS: RELOJ CHECADOR =================
+        let timerRelojDigital = null;
+
+        function actualizarRelojDigital() {
+            const elHora = document.getElementById('relojChecadorHora');
+            const elFecha = document.getElementById('relojChecadorFecha');
+            if (!elHora && !elFecha) return;
+
+            const ahora = new Date();
+            if (elHora) {
+                const horas = String(ahora.getHours()).padStart(2, '0');
+                const mins = String(ahora.getMinutes()).padStart(2, '0');
+                const segs = String(ahora.getSeconds()).padStart(2, '0');
+                elHora.textContent = `${horas}:${mins}:${segs}`;
+            }
+            if (elFecha) {
+                const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const fechaStr = ahora.toLocaleDateString('es-MX', opciones);
+                elFecha.textContent = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
+            }
         }
+
+        async function inicializarModuloNominas() {
+            if (!timerRelojDigital) {
+                actualizarRelojDigital();
+                timerRelojDigital = setInterval(actualizarRelojDigital, 1000);
+            }
+
+            // Poblar select de sucursales si aún no tiene opciones
+            const selSuc = document.getElementById('relojSucursalSelect');
+            if (selSuc && selSuc.options.length <= 1) {
+                try {
+                    const data = await cargarCatalogoSucursalesVendedores();
+                    if (data && Array.isArray(data.sucursales)) {
+                        let opts = '<option value="">-- Seleccionar Sucursal --</option>';
+                        data.sucursales.forEach(s => {
+                            opts += `<option value="${s.id}">${s.nombre}</option>`;
+                        });
+                        selSuc.innerHTML = opts;
+                    }
+                } catch(e) {}
+            }
+
+            // Si el usuario actual tiene sucursal asignada, pre-seleccionarla
+            if (currentUser && currentUser.sucursal_id && selSuc) {
+                selSuc.value = currentUser.sucursal_id;
+            }
+
+            // Pre-llenar nombre de empleado si está vacío
+            const inputEmp = document.getElementById('relojEmpleadoInput');
+            if (inputEmp && !inputEmp.value && currentUser) {
+                inputEmp.value = currentUser.nombre || currentUser.usuario || '';
+            }
+
+            // Cargar checadas registradas el día de hoy
+            await cargarChecadasHoy();
+        }
+        window.inicializarModuloNominas = inicializarModuloNominas;
+
+        function seleccionarTipoChecada(tipo) {
+            const inputVal = document.getElementById('relojTipoChecadaVal');
+            if (inputVal) inputVal.value = tipo;
+
+            const btnEntrada = document.getElementById('btnTipoEntrada');
+            const btnSalida = document.getElementById('btnTipoSalida');
+            const btnComer = document.getElementById('btnTipoComer');
+            const btnRegreso = document.getElementById('btnTipoRegreso');
+
+            const resetBtn = (btn) => {
+                if (!btn) return;
+                btn.className = "btn-tipo-checada p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition";
+            };
+
+            [btnEntrada, btnSalida, btnComer, btnRegreso].forEach(resetBtn);
+
+            if (tipo === 'ENTRADA' && btnEntrada) {
+                btnEntrada.className = "btn-tipo-checada p-2.5 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 font-black text-xs flex items-center justify-center gap-1.5 transition";
+            } else if (tipo === 'SALIDA' && btnSalida) {
+                btnSalida.className = "btn-tipo-checada p-2.5 rounded-xl border border-rose-500 bg-rose-50 text-rose-800 font-black text-xs flex items-center justify-center gap-1.5 transition";
+            } else if (tipo === 'SALIDA_COMER' && btnComer) {
+                btnComer.className = "btn-tipo-checada p-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-800 font-black text-xs flex items-center justify-center gap-1.5 transition";
+            } else if (tipo === 'REGRESO_COMER' && btnRegreso) {
+                btnRegreso.className = "btn-tipo-checada p-2.5 rounded-xl border border-blue-500 bg-blue-50 text-blue-800 font-black text-xs flex items-center justify-center gap-1.5 transition";
+            }
+        }
+        window.seleccionarTipoChecada = seleccionarTipoChecada;
+
+        async function registrarChecadaPersonal(e) {
+            e.preventDefault();
+            const selSuc = document.getElementById('relojSucursalSelect');
+            const inputEmp = document.getElementById('relojEmpleadoInput');
+            const inputTipo = document.getElementById('relojTipoChecadaVal');
+            const inputNotas = document.getElementById('relojNotasInput');
+            const alerta = document.getElementById('alertaRelojChecador');
+            const btnSubmit = document.getElementById('btnConfirmarChecada');
+
+            if (alerta) alerta.classList.add('hidden');
+
+            const colaborador = inputEmp ? inputEmp.value.trim() : '';
+            const tipo = inputTipo ? inputTipo.value : 'ENTRADA';
+            const sucursal_id = selSuc && selSuc.value ? parseInt(selSuc.value) : null;
+            const sucursal_nombre = selSuc && selSuc.selectedIndex > 0 ? selSuc.options[selSuc.selectedIndex].text : '';
+            const notas = inputNotas ? inputNotas.value.trim() : '';
+
+            if (!colaborador) {
+                if (alerta) {
+                    alerta.textContent = 'Ingresa el nombre o clave del colaborador.';
+                    alerta.className = 'text-xs p-2.5 rounded-xl font-bold bg-rose-50 text-rose-700 border border-rose-200 block';
+                }
+                return;
+            }
+
+            const origHtml = btnSubmit ? btnSubmit.innerHTML : '';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = `<span>⏳</span> Registrando checada...`;
+            }
+
+            try {
+                const res = await fetch('/api/nominas/reloj/checar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        colaborador_nombre: colaborador,
+                        tipo: tipo,
+                        sucursal_id: sucursal_id,
+                        sucursal_nombre: sucursal_nombre,
+                        notas: notas
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    if (alerta) {
+                        alerta.textContent = `✅ ${data.mensaje}`;
+                        alerta.className = 'text-xs p-2.5 rounded-xl font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                    }
+                    if (inputNotas) inputNotas.value = '';
+                    await cargarChecadasHoy();
+                    setTimeout(() => {
+                        if (alerta) alerta.classList.add('hidden');
+                    }, 4000);
+                } else {
+                    if (alerta) {
+                        alerta.textContent = data.error || 'No fue posible registrar la checada.';
+                        alerta.className = 'text-xs p-2.5 rounded-xl font-bold bg-rose-50 text-rose-700 border border-rose-200 block';
+                    }
+                }
+            } catch(err) {
+                if (alerta) {
+                    alerta.textContent = 'Error de conexión con el servidor al registrar.';
+                    alerta.className = 'text-xs p-2.5 rounded-xl font-bold bg-rose-50 text-rose-700 border border-rose-200 block';
+                }
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = origHtml;
+                }
+            }
+        }
+        window.registrarChecadaPersonal = registrarChecadaPersonal;
+
+        async function cargarChecadasHoy() {
+            const tbody = document.getElementById('tbodyChecadasHoy');
+            const kpiTotal = document.getElementById('kpiTotalChecadas');
+            const kpiEntradas = document.getElementById('kpiEntradasHoy');
+            const kpiSalidas = document.getElementById('kpiSalidasHoy');
+
+            try {
+                const res = await fetch('/api/nominas/reloj/hoy');
+                const data = await res.json();
+                if (!res.ok || !data.success) return;
+
+                if (kpiTotal) kpiTotal.textContent = data.total || 0;
+                if (kpiEntradas) kpiEntradas.textContent = data.entradas || 0;
+                if (kpiSalidas) kpiSalidas.textContent = data.salidas || 0;
+
+                if (!tbody) return;
+                const registros = data.registros || [];
+                if (!registros.length) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400 text-xs italic">Sin checadas registradas el día de hoy</td></tr>`;
+                    return;
+                }
+
+                const badgeTipo = (tipo) => {
+                    if (tipo === 'ENTRADA') return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">🟢 ENTRADA</span>`;
+                    if (tipo === 'SALIDA') return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">🔴 SALIDA</span>`;
+                    if (tipo === 'SALIDA_COMER') return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">🥪 A COMER</span>`;
+                    if (tipo === 'REGRESO_COMER') return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-200">🔙 REGRESO</span>`;
+                    return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">${tipo}</span>`;
+                };
+
+                tbody.innerHTML = registros.map(r => `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${r.hora}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-900">
+                            <div>${r.colaborador}</div>
+                            ${r.notas ? `<div class="text-[10px] text-slate-400 font-normal italic">${r.notas}</div>` : ''}
+                        </td>
+                        <td class="py-2.5 px-3 text-slate-600 font-medium">${r.sucursal_nombre || 'Matriz / General'}</td>
+                        <td class="py-2.5 px-3">${badgeTipo(r.tipo)}</td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error("Error al cargar checadas hoy:", e);
+            }
+        }
+        window.cargarChecadasHoy = cargarChecadasHoy;
 
 
 
