@@ -129,7 +129,7 @@ def get_dashboard_resumen():
         for a in almacenes_stock:
             a["porcentaje"] = round((a["existencia"] / total_stock_piezas * 100), 1) if total_stock_piezas > 0 else 0.0
 
-        # 3. Top 10 Artículos más vendidos en todo el grupo
+        # 3. Top 10 Artículos: tanto por piezas vendidas (volumen) como por importe neto (ingresos)
         cur.execute("""
             SELECT FIRST 10
                 COALESCE(TRIM(ca.CLAVE_ARTICULO), 'S/C') AS CLAVE,
@@ -147,16 +147,42 @@ def get_dashboard_resumen():
             ORDER BY PIEZAS_VENDIDAS DESC
         """, (fecha_ini, fecha_fin))
 
-        top_articulos = []
+        top_articulos_piezas = []
         for r in cur.fetchall():
-            top_articulos.append({
+            top_articulos_piezas.append({
                 "clave": r[0],
                 "nombre": r[1],
                 "piezas": float(r[2] or 0),
                 "importe": float(r[3] or 0)
             })
 
-        articulo_estrella = top_articulos[0] if top_articulos else {"clave": "N/D", "nombre": "Sin ventas", "piezas": 0, "importe": 0.0}
+        cur.execute("""
+            SELECT FIRST 10
+                COALESCE(TRIM(ca.CLAVE_ARTICULO), 'S/C') AS CLAVE,
+                TRIM(ar.NOMBRE) AS NOMBRE,
+                SUM(d.UNIDADES - COALESCE(d.UNIDADES_DEV, 0)) AS PIEZAS_VENDIDAS,
+                SUM(d.PRECIO_TOTAL_NETO) AS IMPORTE_TOTAL
+            FROM DOCTOS_PV p
+            JOIN DOCTOS_PV_DET d ON d.DOCTO_PV_ID = p.DOCTO_PV_ID
+            JOIN ARTICULOS ar ON ar.ARTICULO_ID = d.ARTICULO_ID
+            LEFT JOIN CLAVES_ARTICULOS ca ON ca.ARTICULO_ID = ar.ARTICULO_ID AND ca.ROL_CLAVE_ART_ID = 17
+            WHERE p.FECHA >= ? AND p.FECHA <= ?
+              AND p.ESTATUS <> 'C'
+              AND p.TIPO_DOCTO IN ('V', 'F')
+            GROUP BY ca.CLAVE_ARTICULO, ar.NOMBRE
+            ORDER BY IMPORTE_TOTAL DESC
+        """, (fecha_ini, fecha_fin))
+
+        top_articulos_importe = []
+        for r in cur.fetchall():
+            top_articulos_importe.append({
+                "clave": r[0],
+                "nombre": r[1],
+                "piezas": float(r[2] or 0),
+                "importe": float(r[3] or 0)
+            })
+
+        articulo_estrella = top_articulos_piezas[0] if top_articulos_piezas else {"clave": "N/D", "nombre": "Sin ventas", "piezas": 0, "importe": 0.0}
 
         # 4. Mejor Cliente del período (excluye clientes genéricos de mostrador)
         cur.execute("""
@@ -205,7 +231,9 @@ def get_dashboard_resumen():
             },
             "ventas_sucursales": sucursales_ventas,
             "almacenes_stock": almacenes_stock,
-            "top_articulos": top_articulos
+            "top_articulos": top_articulos_piezas,
+            "top_articulos_piezas": top_articulos_piezas,
+            "top_articulos_importe": top_articulos_importe
         }
 
         set_cached(cache_key, resultado)

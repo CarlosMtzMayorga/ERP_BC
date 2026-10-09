@@ -86,7 +86,13 @@ async function inicializarModuloResurtidos(forzar = false) {
         document.getElementById('resurtidoFechaInicio').value = data.fecha_inicio;
         document.getElementById('resurtidoVtaDiasAtras').value = data.vta_dias_atras;
         document.getElementById('resurtidoFechaDiasAntes').value = data.fecha_dias_antes;
-        document.getElementById('resurtidoDiasInv').value = data.dias_inventario;
+        if (data.dias_inventario !== undefined && data.dias_inventario !== null) {
+            if (data.dias_inventario !== undefined && data.dias_inventario !== null) {
+            document.getElementById('resurtidoDiasInv').value = data.dias_inventario;
+        }
+        const lblDias = document.getElementById('lblDiasInvHeader');
+        if (lblDias) lblDias.textContent = document.getElementById('resurtidoDiasInv')?.value || data.dias_inventario || 15;
+        }
         document.getElementById('resurtidoPeriodoDias').value = data.periodo_resurtido_dias;
 
         catalogoResurtidosCargado = true;
@@ -135,7 +141,11 @@ async function ejecutarConsultaResurtidos() {
     const fFin = document.getElementById('resurtidoFechaFinal').value;
     const fIni = document.getElementById('resurtidoFechaInicio').value;
     const fAntes = document.getElementById('resurtidoFechaDiasAntes').value;
-    const diasInv = parseInt(document.getElementById('resurtidoDiasInv').value) || 15;
+    const diasInvInput = document.getElementById('resurtidoDiasInv');
+    const diasInv = parseInt(diasInvInput?.value) || 15;
+    if (diasInvInput) diasInvInput.value = diasInv;
+    const lblDias = document.getElementById('lblDiasInvHeader');
+    if (lblDias) lblDias.textContent = diasInv;
     const mesesAnt = parseInt(document.getElementById('resurtidoMesesAnt').value) || 6;
     const reservarMinimoCedis = document.getElementById('chkResurtidoReservarCedis').checked;
 
@@ -198,7 +208,16 @@ async function ejecutarConsultaResurtidos() {
         actualizarProgreso(85, 'Procesando resultados...', 'Formateando datos para visualización', 'bg-amber-600');
         await renderYield();
 
-        datosResurtidosActual = data.articulos || [];
+        datosResurtidosActual = (data.articulos || []).map(item => {
+            const stockCed = Number(item.stock_cedis || 0);
+            if (stockCed <= 1) {
+                item.cantidad_surtir = 0;
+                item.cantidad_sugerida = 0;
+                item.surtir_cedis = 0;
+                item.badge_as = false;
+            }
+            return item;
+        });
         actualizarIndicadoresResurtido(data.totales);
         filtrarYRenderizarTablaResurtidos();
 

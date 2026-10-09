@@ -594,6 +594,19 @@ def buscar_articulos_pos():
                 if s_alm_id == 620110:
                     stock_cedis_map[s_art_id] += s_cant
 
+        # FASE 2.1: Detección de fotos en IMAGENES_ARTICULOS
+        art_ids_con_foto = set()
+        if art_ids:
+            try:
+                cur.execute(f"""
+                    SELECT DISTINCT ARTICULO_ID 
+                    FROM IMAGENES_ARTICULOS 
+                    WHERE ARTICULO_ID IN ({ph_saldos}) AND IMAGEN IS NOT NULL
+                """, art_ids)
+                art_ids_con_foto = set(int(r[0]) for r in cur.fetchall() if r[0] is not None)
+            except Exception:
+                pass
+
         # Determinar marca del artículo desde nombre o catálogo
         articulos = []
         for r in rows:
@@ -629,6 +642,7 @@ def buscar_articulos_pos():
                 else:
                     bonif_sugerida = {"clave": "B03", "monto": 525.0, "nombre": "BONIFICACION ACUMULADOR USADO GRUPO 3"}
 
+            tiene_foto = art_id in art_ids_con_foto
             articulos.append({
                 "articulo_id": art_id,
                 "clave": clave,
@@ -642,6 +656,8 @@ def buscar_articulos_pos():
                 "stock_cedis": stk_cedis,
                 "marca": marca_detectada,
                 "linea": linea,
+                "tiene_foto": tiene_foto,
+                "foto_url": f"/api/articulos/foto/{art_id}" if tiene_foto else None,
                 "bonificacion": bonif_sugerida
             })
 
@@ -656,6 +672,26 @@ def buscar_articulos_pos():
     except Exception as e:
         if conn: conn.close()
         return jsonify({"success": False, "error": str(e), "articulos": []}), 500
+
+@pv_bp.route('/api/articulos/foto/<int:articulo_id>', methods=['GET'])
+def get_foto_articulo_blob(articulo_id):
+    try:
+        conn = conectar_db()
+        cur = conn.cursor()
+        cur.execute("SELECT FIRST 1 IMAGEN FROM IMAGENES_ARTICULOS WHERE ARTICULO_ID = ? AND IMAGEN IS NOT NULL", (articulo_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if row and row[0]:
+            from flask import Response
+            return Response(bytes(row[0]), mimetype="image/jpeg", headers={
+                "Cache-Control": "public, max-age=604800",
+                "Content-Type": "image/jpeg"
+            })
+    except Exception:
+        pass
+    from flask import abort
+    abort(404)
 
 @pv_bp.route('/api/pv/articulos/detalle/<string:clave>', methods=['GET'])
 def detalle_articulo_pos(clave):
@@ -783,6 +819,14 @@ def detalle_articulo_pos(clave):
                     "stock": eq_stock_map[eq_id]
                 })
 
+        # Verificar foto
+        tiene_foto = False
+        try:
+            cur.execute("SELECT FIRST 1 IMAGEN_ARTICULO_ID FROM IMAGENES_ARTICULOS WHERE ARTICULO_ID = ? AND IMAGEN IS NOT NULL", (art_id,))
+            tiene_foto = cur.fetchone() is not None
+        except Exception:
+            pass
+
         cur.close()
         conn.close()
 
@@ -795,6 +839,8 @@ def detalle_articulo_pos(clave):
                 "equivalencia": equiv_art,
                 "precio": precio_art,
                 "linea": linea_art,
+                "tiene_foto": tiene_foto,
+                "foto_url": f"/api/articulos/foto/{art_id}" if tiene_foto else None,
                 "total_piezas": total_piezas,
                 "stock_tu_almacen": stock_tu_almacen,
                 "stock_cedis": stock_cedis,

@@ -198,7 +198,8 @@ DEFAULT_MENU_ESTRUCTURA = [
             {"id": "almacen_traspasos", "nombre": "Control de Traspasos", "icono": "📱", "visible": True},
             {"id": "almacen_stock", "nombre": "Catálogo y Stock", "icono": "📋", "visible": True},
             {"id": "almacen_recepcion", "nombre": "Recepción de Compra (OC)", "icono": "📥", "visible": True},
-            {"id": "almacen_cascos", "nombre": "Control de Cascos", "icono": "🔋", "visible": True}
+            {"id": "almacen_cascos", "nombre": "Control de Cascos", "icono": "🔋", "visible": True},
+            {"id": "almacen_embarques", "nombre": "Embarques", "icono": "🏷️", "visible": True}
         ]
     },
     {
@@ -220,8 +221,11 @@ DEFAULT_MENU_ESTRUCTURA = [
         "id": "sucursales",
         "nombre": "Sucursales",
         "icono": "🏢",
-        "tipo": "modulo",
-        "visible": True
+        "tipo": "agrupador",
+        "visible": True,
+        "submodulos": [
+            {"id": "sucursales_recepcion", "nombre": "Recepción de Embarques", "icono": "📥", "visible": True}
+        ]
     },
     {
         "id": "administracion",

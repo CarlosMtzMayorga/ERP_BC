@@ -15,6 +15,11 @@ config_empresas.json
 # Registros y artefactos generados
 *.log
 index.html.gz
+screenshot_*.png
+s25_*.png
+*.apk
+*.aab
+*.exe
 
 # Editor / SO
 .vscode/

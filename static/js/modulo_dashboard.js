@@ -68,7 +68,7 @@ async function cargarDashboard(periodo = 'mes_actual') {
         renderizarKPIs(data.kpis);
         renderizarGraficoVentas(data.ventas_sucursales);
         renderizarGraficoAlmacenes(data.almacenes_stock);
-        renderizarTablaTopArticulos(data.top_articulos);
+        cambiarCriterioTopArticulos(criterioTopArticulosActual);
         renderizarTablaSucursales(data.ventas_sucursales);
 
         const badgeActualizado = document.getElementById('badgeUltimaActualizacion');
@@ -255,6 +255,57 @@ function renderizarGraficoAlmacenes(almacenes) {
     });
 }
 
+let criterioTopArticulosActual = 'piezas';
+
+function cambiarCriterioTopArticulos(criterio) {
+    criterioTopArticulosActual = criterio;
+    const btnPiezas = document.getElementById('btnTopCriterioPiezas');
+    const btnImporte = document.getElementById('btnTopCriterioImporte');
+    const thPiezas = document.getElementById('thTopPiezas');
+    const thImporte = document.getElementById('thTopImporte');
+    const subtitulo = document.getElementById('subtituloTopArticulos');
+
+    if (criterio === 'importe') {
+        if (btnPiezas) {
+            btnPiezas.className = 'px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+        if (btnImporte) {
+            btnImporte.className = 'px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer btn-theme-primary text-white shadow-xs';
+        }
+        if (thPiezas) thPiezas.className = 'text-slate-500 font-semibold';
+        if (thImporte) thImporte.className = 'text-slate-900 font-black underline decoration-theme-primary decoration-2 underline-offset-4';
+        if (subtitulo) subtitulo.textContent = 'Productos con mayor facturación e importe neto en todo el grupo';
+    } else {
+        if (btnPiezas) {
+            btnPiezas.className = 'px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer btn-theme-primary text-white shadow-xs';
+        }
+        if (btnImporte) {
+            btnImporte.className = 'px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+        if (thPiezas) thPiezas.className = 'text-slate-900 font-black underline decoration-theme-primary decoration-2 underline-offset-4';
+        if (thImporte) thImporte.className = 'text-slate-500 font-semibold';
+        if (subtitulo) subtitulo.textContent = 'Productos con mayor rotación y piezas vendidas en todo el grupo';
+    }
+
+    if (dashboardDataCache) {
+        let lista = [];
+        if (criterio === 'importe') {
+            if (dashboardDataCache.top_articulos_importe && dashboardDataCache.top_articulos_importe.length > 0) {
+                lista = dashboardDataCache.top_articulos_importe;
+            } else {
+                lista = [...(dashboardDataCache.top_articulos || [])].sort((a, b) => b.importe - a.importe);
+            }
+        } else {
+            if (dashboardDataCache.top_articulos_piezas && dashboardDataCache.top_articulos_piezas.length > 0) {
+                lista = dashboardDataCache.top_articulos_piezas;
+            } else {
+                lista = [...(dashboardDataCache.top_articulos || [])].sort((a, b) => b.piezas - a.piezas);
+            }
+        }
+        renderizarTablaTopArticulos(lista);
+    }
+}
+
 function renderizarTablaTopArticulos(articulos) {
     const tbody = document.getElementById('tbodyTopArticulos');
     if (!tbody) return;
@@ -265,9 +316,19 @@ function renderizarTablaTopArticulos(articulos) {
     }
 
     const medallas = ['🥇', '🥈', '🥉'];
+    const esPorImporte = (criterioTopArticulosActual === 'importe');
 
     tbody.innerHTML = articulos.map((item, idx) => {
         const medalla = idx < 3 ? `<span class="text-base">${medallas[idx]}</span>` : `<span class="text-xs font-bold text-slate-400 w-5 text-center">#${idx + 1}</span>`;
+        
+        const piezasHtml = esPorImporte
+            ? `<span class="font-bold text-xs text-slate-600">${formatearNumero(item.piezas)} pzas</span>`
+            : `<span class="inline-flex items-center gap-1 font-black text-xs text-theme-deep bg-theme-light px-2.5 py-0.5 rounded-full border border-theme-soft">${formatearNumero(item.piezas)} pzas</span>`;
+
+        const importeHtml = esPorImporte
+            ? `<span class="inline-flex items-center gap-1 font-black text-xs text-theme-deep bg-theme-light px-2.5 py-0.5 rounded-full border border-theme-soft">${formatearMoneda(item.importe)}</span>`
+            : `<span class="font-black text-slate-900 text-xs">${formatearMoneda(item.importe)}</span>`;
+
         return `
             <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
                 <td class="py-3 px-3 text-center">
@@ -283,13 +344,11 @@ function renderizarTablaTopArticulos(articulos) {
                         ${item.nombre}
                     </div>
                 </td>
-                <td class="py-3 px-3 text-right">
-                    <span class="inline-flex items-center gap-1 font-black text-xs text-theme-deep bg-theme-light px-2 py-0.5 rounded-full border border-theme-soft">
-                        ${formatearNumero(item.piezas)} pzas
-                    </span>
+                <td class="py-3 px-3 text-right whitespace-nowrap">
+                    ${piezasHtml}
                 </td>
-                <td class="py-3 px-3 text-right font-black text-slate-900 text-xs">
-                    ${formatearMoneda(item.importe)}
+                <td class="py-3 px-3 text-right whitespace-nowrap">
+                    ${importeHtml}
                 </td>
             </tr>
         `;
@@ -299,6 +358,11 @@ function renderizarTablaTopArticulos(articulos) {
 function renderizarTablaSucursales(sucursales) {
     const tbody = document.getElementById('tbodyResumenSucursales');
     if (!tbody) return;
+
+    const badgeSuc = document.getElementById('badgeTotalSucursalesResumen');
+    if (badgeSuc && Array.isArray(sucursales)) {
+        badgeSuc.textContent = `${sucursales.length} Sucursales`;
+    }
 
     if (!sucursales || sucursales.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">No se encontraron sucursales activas.</td></tr>`;

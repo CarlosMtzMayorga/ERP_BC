@@ -20,6 +20,7 @@ from app.routes.pv_routes import pv_bp
 from app.routes.bot_admin_routes import bot_admin_bp
 from app.routes.vendedores_routes import vendedores_bp
 from app.routes.cascos_routes import cascos_bp
+from app.routes.embarques_routes import embarques_bp
 
 def _obtener_secret_key():
     env_secret = os.environ.get("FLASK_SECRET_KEY")
@@ -85,6 +86,7 @@ def create_app():
     app.register_blueprint(bot_admin_bp)
     app.register_blueprint(vendedores_bp)
     app.register_blueprint(cascos_bp)
+    app.register_blueprint(embarques_bp)
 
     @app.before_request
     def verificar_seguridad_api():
@@ -96,9 +98,10 @@ def create_app():
                 '/api/login',
                 '/api/logout',
                 '/api/session',
-                '/api/empresas'
+                '/api/empresas',
+                '/api/config/menu-modulos'
             ]
-            if request.path not in rutas_publicas and not any(request.path.startswith(r) for r in ['/api/empresas', '/api/logo']):
+            if request.path not in rutas_publicas and not any(request.path.startswith(r) for r in ['/api/empresas', '/api/logo', '/api/articulos/foto']):
                 if 'usuario' not in session:
                     return jsonify({
                         "success": False,

@@ -247,16 +247,37 @@ function pvActualizarUiCliente(cli) {
     const cardSal = document.getElementById('pvCardSaldoCliente');
     const cardDisp = document.getElementById('pvCardSaldoDisponible');
 
-    if (cardLim) cardLim.textContent = formatearMoneda(cli.limite_credito);
-    if (cardVenc) {
-        cardVenc.textContent = formatearMoneda(cli.saldo_vencido);
-        cardVenc.className = `text-xs sm:text-sm font-black mt-1 truncate leading-none ${cli.saldo_vencido > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-800'}`;
+    pvActualizarBadgeSaldo(cardLim, cli.limite_credito, 'limite');
+    pvActualizarBadgeSaldo(cardVenc, cli.saldo_vencido, 'vencido');
+    pvActualizarBadgeSaldo(cardSal, cli.saldo_cliente, 'saldo');
+    pvActualizarBadgeSaldo(cardDisp, cli.saldo_disponible, 'disponible');
+}
+
+function pvActualizarBadgeSaldo(el, valor, tipo) {
+    if (!el) return;
+    const num = parseFloat(valor || 0);
+    const txt = formatearMoneda(num);
+    el.textContent = txt;
+    el.title = `${txt}`;
+
+    // Tipografía adaptativa para garantizar que NUNCA se corte la cifra
+    let fontClass = 'text-xs xl:text-sm';
+    if (txt.length >= 13) {
+        fontClass = 'text-[9.5px] xl:text-[10.5px]';
+    } else if (txt.length >= 11) {
+        fontClass = 'text-[10.5px] xl:text-xs';
+    } else if (txt.length >= 9) {
+        fontClass = 'text-[11.5px] xl:text-xs';
     }
-    if (cardSal) cardSal.textContent = formatearMoneda(cli.saldo_cliente);
-    if (cardDisp) {
-        cardDisp.textContent = formatearMoneda(cli.saldo_disponible);
-        cardDisp.className = `text-xs sm:text-sm font-black mt-1 truncate leading-none ${cli.saldo_disponible > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-800'}`;
+
+    let colorClass = 'text-slate-800';
+    if (tipo === 'vencido') {
+        colorClass = num > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-800';
+    } else if (tipo === 'disponible') {
+        colorClass = num > 0 ? 'text-emerald-700 font-extrabold' : (num < 0 ? 'text-rose-600 font-extrabold' : 'text-slate-700');
     }
+
+    el.className = `${fontClass} font-black mt-0.5 whitespace-nowrap tabular-nums tracking-tight leading-none ${colorClass}`;
 }
 
 function pvDeseleccionarCliente() {
@@ -272,13 +293,10 @@ function pvDeseleccionarCliente() {
     }
 
     // Resetear tarjetas a '$0.00'
-    ['pvCardLimiteCredito', 'pvCardSaldoVencido', 'pvCardSaldoCliente', 'pvCardSaldoDisponible'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.textContent = '$0.00';
-            el.className = 'text-xs sm:text-sm font-black text-slate-800 mt-1 truncate leading-none';
-        }
-    });
+    pvActualizarBadgeSaldo(document.getElementById('pvCardLimiteCredito'), 0, 'limite');
+    pvActualizarBadgeSaldo(document.getElementById('pvCardSaldoVencido'), 0, 'vencido');
+    pvActualizarBadgeSaldo(document.getElementById('pvCardSaldoCliente'), 0, 'saldo');
+    pvActualizarBadgeSaldo(document.getElementById('pvCardSaldoDisponible'), 0, 'disponible');
 }
 
 // ================= CATÁLOGO VEHICULAR Y FILTROS =================
@@ -646,70 +664,86 @@ function pvRenderizarGridArticulos(articulos) {
         const esFreno = nomUp.includes('BALATA') || nomUp.includes('FRENO');
         const iconSvg = esBateria ? '🔋' : esAmort ? '🔩' : esFiltro ? '🛢️' : esBujia ? '⚡' : esFreno ? '🛑' : '⚙️';
 
+        const tieneFoto = !!(art.tiene_foto && art.foto_url);
+        const fotoHtml = tieneFoto
+            ? `<img src="${art.foto_url}" alt="${art.clave}" loading="lazy" class="w-full h-full object-contain p-1 rounded-xl transition duration-200 group-hover:scale-105" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-2xl\'>${iconSvg}</span>';">`
+            : `<span class="text-2xl">${iconSvg}</span>`;
+
         return `
-            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:shadow-lg hover:border-indigo-300 transition-all duration-200 p-4 flex flex-col justify-between group">
-                <div class="space-y-3">
-                    <!-- Header Card: Clave, Marca y Botón Zoom -->
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <span class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition tracking-tight">${art.clave}</span>
-                            <span class="ml-1.5 text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">${art.marca || 'GEN'}</span>
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all duration-200 p-2.5 flex flex-col justify-between group">
+                <div>
+                    <!-- Fila Superior: Foto (izquierda) + Clave, Marca, Detalle y Nombre (derecha) -->
+                    <div class="flex items-start gap-2.5">
+                        <!-- Miniatura de Foto / Icono (Compacta y nítida) -->
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative cursor-pointer" onclick="pvAbrirModalDetalle('${art.clave}')" title="Ver foto y existencias ampliadas">
+                            ${fotoHtml}
                         </div>
-                        <button type="button" onclick="pvAbrirModalDetalle('${art.clave}')" title="Ver existencias multi-almacén y equivalencias"
-                                class="h-9 w-9 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 flex items-center justify-center text-xs transition cursor-pointer active:scale-95 shrink-0">
-                            🔍
-                        </button>
+
+                        <!-- Info: Clave, Marca, Equivalencia y Nombre -->
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex items-center gap-1 min-w-0">
+                                    <span class="text-xs sm:text-sm font-black text-slate-900 group-hover:text-indigo-600 transition tracking-tight truncate">${art.clave}</span>
+                                    <span class="text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">${art.marca || 'GEN'}</span>
+                                </div>
+                                <button type="button" onclick="pvAbrirModalDetalle('${art.clave}')" title="Ver existencias multi-almacén y equivalencias"
+                                        class="h-7 w-7 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-500 flex items-center justify-center text-[10px] transition cursor-pointer active:scale-95 shrink-0">
+                                    🔍
+                                </button>
+                            </div>
+
+                            <!-- Nombre / Descripción bien visible y legible -->
+                            <h4 class="text-[11px] sm:text-xs font-semibold text-slate-700 line-clamp-2 leading-tight mt-1" title="${art.nombre}">
+                                ${art.nombre}
+                            </h4>
+
+                            ${art.equivalencia ? `
+                                <div class="text-[9px] text-slate-400 font-mono truncate mt-0.5" title="Equivalencia: ${art.equivalencia}">
+                                    Eq: ${art.equivalencia}
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
 
-                    <!-- Nombre del Artículo -->
-                    <h4 class="text-xs font-semibold text-slate-700 line-clamp-2 leading-relaxed" title="${art.nombre}">
-                        ${art.nombre}
-                    </h4>
-
-                    <!-- Mini imagen / icono -->
-                    <div class="h-20 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
-                        <span class="text-3xl">${iconSvg}</span>
-                    </div>
-
-                    <!-- Badges de Stock Touch -->
-                    <div class="grid grid-cols-3 gap-1.5 text-[10px]">
-                        <div class="p-1.5 rounded-xl border text-center ${art.stock_local > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-700'}">
-                            <div class="font-bold uppercase text-[7.5px] truncate ${art.stock_local > 0 ? 'text-emerald-700' : 'text-rose-600'}">Tu Almacén</div>
-                            <div class="font-black text-xs mt-0.5">${art.stock_local}</div>
+                    <!-- Fila de Existencias (Compacta en 3 pastillas) -->
+                    <div class="grid grid-cols-3 gap-1 text-[9px] mt-2">
+                        <div class="px-1.5 py-1 rounded-lg border text-center ${art.stock_local > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-700'}">
+                            <div class="font-bold uppercase text-[7px] truncate ${art.stock_local > 0 ? 'text-emerald-700' : 'text-rose-600'}">Tu Almacén</div>
+                            <div class="font-black text-[11px] leading-tight">${art.stock_local}</div>
                         </div>
-                        <div class="p-1.5 rounded-xl border text-center ${(art.stock_cedis || 0) > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-slate-50 border-slate-100 text-slate-400'}">
-                            <div class="font-bold uppercase text-[7.5px] truncate ${(art.stock_cedis || 0) > 0 ? 'text-amber-700' : 'text-slate-400'}">CEDIS</div>
-                            <div class="font-black text-xs mt-0.5">${art.stock_cedis || 0}</div>
+                        <div class="px-1.5 py-1 rounded-lg border text-center ${(art.stock_cedis || 0) > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-slate-50 border-slate-100 text-slate-400'}">
+                            <div class="font-bold uppercase text-[7px] truncate ${(art.stock_cedis || 0) > 0 ? 'text-amber-700' : 'text-slate-400'}">CEDIS</div>
+                            <div class="font-black text-[11px] leading-tight">${art.stock_cedis || 0}</div>
                         </div>
-                        <div class="p-1.5 rounded-xl border border-slate-100 bg-slate-50 text-center">
-                            <div class="text-slate-400 font-bold uppercase text-[7.5px] truncate">Global</div>
-                            <div class="font-black text-slate-800 text-xs mt-0.5">${art.stock_global}</div>
+                        <div class="px-1.5 py-1 rounded-lg border border-slate-100 bg-slate-50 text-center">
+                            <div class="text-slate-400 font-bold uppercase text-[7px] truncate">Global</div>
+                            <div class="font-black text-slate-800 text-[11px] leading-tight">${art.stock_global}</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Card: Precio y Botón de Acción -->
-                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
                     <div>
-                        <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Precio Unitario</div>
-                        <div class="text-base font-black text-slate-900">${formatearMoneda(art.precio)}</div>
+                        <div class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Precio Unitario</div>
+                        <div class="text-sm sm:text-base font-black text-slate-900 leading-tight">${formatearMoneda(art.precio)}</div>
                     </div>
                     ${art.stock_local > 0 ? `
                         <button type="button" onclick='pvAgregarAlCarrito(${JSON.stringify(art).replace(/'/g, "&apos;")})'
-                                class="h-10 px-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                class="h-8 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm cursor-pointer flex items-center gap-1 shrink-0">
                             <span>➕</span>
                             <span>Agregar</span>
                         </button>
                     ` : (art.stock_cedis && art.stock_cedis > 0) ? `
                         <button type="button" onclick='pvAbrirModalSolicitarTraspasoCedis(${JSON.stringify(art).replace(/'/g, "&apos;")})'
-                                class="h-10 px-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1 shrink-0"
+                                class="h-8 px-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-[10px] uppercase tracking-wider rounded-xl transition shadow-sm cursor-pointer flex items-center gap-1 shrink-0"
                                 title="Sin existencias locales. Solicitar traspaso a CEDIS">
                             <span>🚚</span>
                             <span>Pedir a CEDIS</span>
                         </button>
                     ` : `
                         <button type="button" disabled
-                                class="h-10 px-3 bg-slate-100 text-slate-400 font-bold text-[11px] uppercase tracking-wider rounded-xl border border-slate-200 cursor-not-allowed flex items-center gap-1 shrink-0"
+                                class="h-8 px-2.5 bg-slate-100 text-slate-400 font-bold text-[10px] uppercase tracking-wider rounded-xl border border-slate-200 cursor-not-allowed flex items-center gap-1 shrink-0"
                                 title="Agotado en tu sucursal y en CEDIS">
                             <span>✕</span>
                             <span>Sin Stock</span>
@@ -749,6 +783,23 @@ async function pvAbrirModalDetalle(clave) {
             document.getElementById('pvModalStockAlmacen').textContent = `${art.stock_tu_almacen || 0} pzas`;
             document.getElementById('pvModalTotalExistencias').textContent = art.total_piezas || 0;
             document.getElementById('pvModalPrecioArticulo').textContent = formatearMoneda(art.precio);
+
+            // Foto ampliada
+            const fotoImg = document.getElementById('pvModalFotoImg');
+            const fotoIcon = document.getElementById('pvModalFotoIcon');
+            if (art.tiene_foto && art.foto_url) {
+                if (fotoImg) {
+                    fotoImg.src = art.foto_url;
+                    fotoImg.classList.remove('hidden');
+                }
+                if (fotoIcon) fotoIcon.classList.add('hidden');
+            } else {
+                if (fotoImg) {
+                    fotoImg.classList.add('hidden');
+                    fotoImg.src = '';
+                }
+                if (fotoIcon) fotoIcon.classList.remove('hidden');
+            }
 
             // Botón Agregar al pedido o Solicitar Traspaso a CEDIS
             const btnAgr = document.getElementById('pvBtnModalAgregarPedido');

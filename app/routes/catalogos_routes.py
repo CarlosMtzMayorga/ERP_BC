@@ -78,12 +78,24 @@ def post_sincronizar_microsip():
 @catalogos_bp.route('/api/seleccionar-empresa', methods=['POST'])
 def seleccionar_empresa():
     data = request.get_json() or {}
-    empresa_id = data.get('empresa_id', '')
+    empresa_id = str(data.get('empresa_id', '')).strip()
+
+    if empresa_id.upper() in ('BC', 'BATTERY', 'BATTERY CENTER'):
+        empresa_id = 'BATTERY CENTER'
+    elif empresa_id.upper() in ('RT', 'BASESRTT'):
+        empresa_id = 'RT'
 
     empresas = cargar_empresas_config()
     empresa_info = next((e for e in empresas if str(e.get('id')).upper() == str(empresa_id).upper() or str(e.get('nombre')).upper() == str(empresa_id).upper() or str(e.get('dsn', '')).upper() == str(empresa_id).upper()), None)
     if not empresa_info:
-        return jsonify({"error": "Empresa no válida"}), 400
+        visibles = obtener_empresas_visibles()
+        empresa_info = visibles[0] if visibles else (empresas[0] if empresas else None)
+        if empresa_info:
+            empresa_id = empresa_info.get('id')
+        else:
+            return jsonify({"error": "Empresa no válida"}), 400
+    else:
+        empresa_id = empresa_info.get('id', empresa_id)
 
     try:
         conn = conectar_db(empresa_id)

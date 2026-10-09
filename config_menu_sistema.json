@@ -67,6 +67,12 @@
         "id": "almacen_cascos",
         "nombre": "Control de Cascos",
         "visible": true
+      },
+      {
+        "icono": "🏷️",
+        "id": "almacen_embarques",
+        "nombre": "Embarques",
+        "visible": true
       }
     ],
     "tipo": "agrupador",
@@ -121,7 +127,15 @@
     "icono": "🏢",
     "id": "sucursales",
     "nombre": "Sucursales",
-    "tipo": "modulo",
+    "submodulos": [
+      {
+        "icono": "📥",
+        "id": "sucursales_recepcion",
+        "nombre": "Recepción de Embarques",
+        "visible": true
+      }
+    ],
+    "tipo": "agrupador",
     "visible": true
   },
   {

@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/img/favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/img/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/static/img/favicon/site.webmanifest">
     <link rel="stylesheet" href="/static/css/custom.css?v=2.7">
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 antialiased">
@@ -95,7 +99,7 @@
                 </div>
 
                 <div class="hidden md:flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-1.5 flex-shrink-0">
-                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 whitespace-nowrap">Sucursal</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 whitespace-nowrap">Empresa</span>
                     <select id="selectEmpresa" class="font-bold text-slate-900 text-xs bg-white border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-red-500 focus:outline-none cursor-pointer">
                         <option value="">Cargando empresas...</option>
                     </select>
@@ -121,7 +125,7 @@
                             <svg id="chevronVentas" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
 
-                        <div id="sidebarSubmenuVentas" class="submenu-accordion open dropdown-panel">
+                        <div id="sidebarSubmenuVentas" class="submenu-accordion closed dropdown-panel">
                             <div id="sidebarItemPuntoVenta">
                                 <button type="button" id="tabBtnPuntoVenta" class="sidebar-item dropdown-item flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -178,6 +182,12 @@
                                     <span>Control de Cascos</span>
                                 </button>
                             </div>
+                            <div id="sidebarItemAlmEmbarques">
+                                <button type="button" id="tabBtnAlmEmbarques" onclick="irASubTabAlmacen('embarques')" class="sidebar-item dropdown-item flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                    <span>Embarques y Empaque</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -191,7 +201,7 @@
                             <svg id="chevronCompras" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         
-                        <div id="sidebarSubmenuCompras" class="submenu-accordion open dropdown-panel">
+                        <div id="sidebarSubmenuCompras" class="submenu-accordion closed dropdown-panel">
                             <div id="sidebarItemM1">
                                 <button type="button" id="tabBtnModulo1" class="sidebar-item dropdown-item flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -227,7 +237,7 @@
                                 </button>
                             </div>
 
-                            <div id="sidebarItemComprasSolicitudes">
+                            <div id="sidebarItemComprasSolicitudes" class="hidden">
                                 <button type="button" id="tabBtnComprasSolicitudes" class="sidebar-item dropdown-item flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
                                     <div class="flex items-center gap-2.5">
                                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -239,12 +249,24 @@
                         </div>
                     </div>
 
-                    <!-- MÓDULO 3: SUCURSALES -->
-                    <div id="sidebarItemSucursales" class="flex-shrink-0">
-                        <button type="button" id="tabBtnSucursales" class="sidebar-item nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            <span>Sucursales</span>
+                    <!-- MÓDULO 3: SUCURSALES (Módulo Principal y Agrupador) -->
+                    <div id="sidebarItemSucursales" class="relative flex-shrink-0">
+                        <button type="button" id="tabBtnSucursales" class="sidebar-item nav-tab flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>Sucursales</span>
+                            </div>
+                            <svg id="chevronSucursales" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
+                        
+                        <div id="sidebarSubmenuSucursales" class="submenu-accordion closed dropdown-panel">
+                            <div id="sidebarItemSucRecepcion">
+                                <button type="button" id="tabBtnSucRecepcion" onclick="activarTab('sucursales_recepcion')" class="sidebar-item dropdown-item flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    <span>Recepción de Embarques</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- MÓDULO ADMINISTRACIÓN DEL NEGOCIO -->
@@ -328,17 +350,16 @@
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5 text-xs font-semibold">
                         <span id="headerEmpresaTag" class="px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200 font-black text-[11px] tracking-wide">BC Refaccionarias</span>
-                        <span class="text-slate-300">/</span>
-                        <span id="breadcrumbParent" onclick="activarTab('compras')" class="px-2 py-0.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer transition text-[11px]">Compras</span>
-                        <span id="breadcrumbParentSep" class="text-slate-300">/</span>
-                        <span id="breadcrumbCurrent" class="px-2.5 py-1 rounded-lg badge-theme-primary font-black text-xs">Recepción de Compra</span>
+                        <span id="breadcrumbParentSep" class="hidden text-slate-300">/</span>
+                        <span id="breadcrumbParent" onclick="activarTab('dashboard')" class="hidden px-2 py-0.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer transition text-[11px]">Inicio</span>
+                        <span id="breadcrumbCurrent" class="px-2.5 py-1 rounded-lg badge-theme-primary font-black text-xs">Inicio / Tablero</span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <div id="connStatusBox" class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 px-3.5 py-1.5 rounded-full border border-slate-200 text-xs transition shadow-xs">
                         <span id="connStatusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span id="empresaNombreOficial" class="font-bold text-slate-700 text-[11px]">Verificando...</span>
+                        <span id="empresaNombreOficial" class="font-bold text-slate-700 text-[11px]">Conectando...</span>
                     </div>
 
                     <button type="button" id="btnSyncOdbc" class="btn-press inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition cursor-pointer">
@@ -367,7 +388,7 @@
                 <div id="alertBox" class="hidden p-3.5 rounded-xl text-xs font-medium"></div>
 
                 <!-- ================= MÓDULO INICIO / DASHBOARD EJECUTIVO ================= -->
-                <div id="moduloDashboardContent" class="space-y-5">
+                <div id="moduloDashboardContent" class="hidden space-y-5">
                     
                     <!-- Header Banner Ejecutivo -->
                     <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
@@ -519,19 +540,30 @@
                         </div>
 
                         <!-- Fila de Tablas Analíticas -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                             <!-- Top 10 Artículos Más Vendidos (7 cols) -->
-                            <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
-                                <div class="flex items-center justify-between mb-4">
+                            <div class="lg:col-span-7 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                                     <div>
-                                        <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                                        <h3 id="tituloTopArticulos" class="text-sm font-black text-slate-900 flex items-center gap-2">
                                             <span>🥇</span> Top 10 Artículos Más Vendidos
                                         </h3>
-                                        <p class="text-xs text-slate-500 font-medium mt-0.5">Productos con mayor rotación y volumen en todo el grupo</p>
+                                        <p id="subtituloTopArticulos" class="text-xs text-slate-500 font-medium mt-0.5">Productos con mayor rotación y piezas vendidas en todo el grupo</p>
                                     </div>
-                                    <button type="button" onclick="activarTab('resurtidos')" class="text-xs font-bold text-theme-primary hover:opacity-80 hover:underline cursor-pointer">
-                                        Ir a Resurtidos &rarr;
-                                    </button>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <!-- Toggle de Criterio: Mayor Cantidad vs Mayor Importe -->
+                                        <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
+                                            <button type="button" id="btnTopCriterioPiezas" onclick="cambiarCriterioTopArticulos('piezas')" class="px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer btn-theme-primary text-white shadow-xs">
+                                                📦 Mayor Cantidad
+                                            </button>
+                                            <button type="button" id="btnTopCriterioImporte" onclick="cambiarCriterioTopArticulos('importe')" class="px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900">
+                                                💰 Mayor Importe
+                                            </button>
+                                        </div>
+                                        <button type="button" onclick="activarTab('resurtidos')" class="text-xs font-bold text-theme-primary hover:opacity-80 hover:underline cursor-pointer whitespace-nowrap">
+                                            Ir a Resurtidos &rarr;
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left border-collapse">
@@ -540,8 +572,12 @@
                                                 <th class="py-2.5 px-3 text-center">Pos</th>
                                                 <th class="py-2.5 px-3">Clave</th>
                                                 <th class="py-2.5 px-3">Descripción</th>
-                                                <th class="py-2.5 px-3 text-right">Piezas</th>
-                                                <th class="py-2.5 px-3 text-right">Importe</th>
+                                                <th class="py-2.5 px-3 text-right cursor-pointer hover:text-slate-700" onclick="cambiarCriterioTopArticulos('piezas')" title="Ordenar por piezas">
+                                                    <span id="thTopPiezas" class="text-slate-900 font-black underline decoration-theme-primary decoration-2 underline-offset-4">Piezas</span>
+                                                </th>
+                                                <th class="py-2.5 px-3 text-right cursor-pointer hover:text-slate-700" onclick="cambiarCriterioTopArticulos('importe')" title="Ordenar por importe">
+                                                    <span id="thTopImporte">Importe</span>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody id="tbodyTopArticulos" class="divide-y divide-slate-100">
@@ -551,16 +587,16 @@
                                 </div>
                             </div>
 
-                            <!-- Resumen por Sucursal (5 cols) -->
+                            <!-- Resumen por Sucursal (5 cols) - Desplegado Completo -->
                             <div class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
                                         <h3 class="text-sm font-black text-slate-900">Aportación por Sucursal</h3>
                                         <p class="text-xs text-slate-500 font-medium mt-0.5">Porcentaje de venta sobre el total del grupo</p>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-400">12 Sucursales</span>
+                                    <span id="badgeTotalSucursalesResumen" class="text-xs font-bold text-slate-400">Sucursales</span>
                                 </div>
-                                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                                <div class="overflow-x-auto">
                                     <table class="w-full text-left border-collapse">
                                         <thead>
                                             <tr class="text-[11px] font-black uppercase text-slate-400 border-b border-slate-100 sticky top-0 bg-white">
@@ -610,213 +646,228 @@
                 </div>
 
                 <!-- ================= MÓDULO PUNTO DE VENTA (SUBMÓDULO DE VENTAS) ================= -->
-                <div id="moduloPuntoVentaContent" class="hidden space-y-4">
+                <div id="moduloPuntoVentaContent" class="hidden">
 
-                    <!-- 1. TOP BAR: CLIENTE, CRÉDITO EN VIVO Y VENDEDOR (Touch & Tablet Optimized) -->
-                    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 grid grid-cols-1 xl:grid-cols-12 gap-4 items-center">
-                        
-                        <!-- Buscador / Selector de Cliente (col-span-5) -->
-                        <div class="xl:col-span-5 flex flex-col gap-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                    <span>👤</span> Cliente / Mostrador
-                                </span>
-                                <div class="text-[10px] font-mono font-bold text-slate-500 flex items-center gap-2">
-                                    <span id="pvRelojFecha" class="bg-slate-100 px-2 py-0.5 rounded-md">2026-10-05</span>
-                                    <span id="pvRelojHora" class="bg-slate-900 text-white px-2 py-0.5 rounded-md font-mono">17:00:00</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Vista: Buscando / Sin cliente -->
-                            <div id="pvBoxBusquedaCliente" class="relative">
-                                <div class="flex items-center gap-2">
-                                    <div class="relative flex-1">
-                                        <input type="text" id="pvInputCliente" placeholder="Buscar cliente por nombre o teléfono..." autocomplete="off"
-                                               class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-2xl px-4 py-2.5 pl-9 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
-                                        <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
-                                    </div>
-                                    <button type="button" onclick="pvBuscarClienteManual()" title="Buscar cliente" class="h-10 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs shrink-0">
-                                        Buscar
-                                    </button>
-                                </div>
-                                <!-- Dropdown Resultados de Clientes -->
-                                <div id="pvDropdownClientes" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
-                                </div>
-                            </div>
-
-                            <!-- Vista: Cliente Seleccionado -->
-                            <div id="pvBoxClienteSeleccionado" class="hidden bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-1.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="w-7 h-7 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">✓</span>
-                                        <span id="pvClienteNombre" class="text-xs font-black text-slate-900 truncate">CLIENTE</span>
-                                    </div>
-                                    <button type="button" onclick="pvDeseleccionarCliente()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg transition shrink-0 cursor-pointer">
-                                        Cambiar ✕
-                                    </button>
-                                </div>
-                                <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
-                                    <span id="pvBadgeTablaAsignada" class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200">Tabla Asignada: Talleres y Flotillas</span>
-                                    <span id="pvBadgeFormaCobro" class="bg-slate-200/70 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-300">Cobro: Contado</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4 Tarjetas de Crédito Touch (col-span-5) -->
-                        <div class="xl:col-span-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <!-- 1. Límite -->
-                            <div class="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/90 text-center flex flex-col justify-center">
-                                <div class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Límite Crédito</div>
-                                <div id="pvCardLimiteCredito" class="text-xs sm:text-sm font-black text-slate-800 mt-1 truncate leading-none">$0.00</div>
-                            </div>
-                            <!-- 2. Vencido -->
-                            <div class="bg-rose-50/60 p-2.5 rounded-2xl border border-rose-200/80 text-center flex flex-col justify-center">
-                                <div class="text-[9px] font-black uppercase text-rose-500 tracking-wider">Saldo Vencido</div>
-                                <div id="pvCardSaldoVencido" class="text-xs sm:text-sm font-black text-slate-800 mt-1 truncate leading-none">$0.00</div>
-                            </div>
-                            <!-- 3. Saldo -->
-                            <div class="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/90 text-center flex flex-col justify-center">
-                                <div class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saldo Actual</div>
-                                <div id="pvCardSaldoCliente" class="text-xs sm:text-sm font-black text-slate-800 mt-1 truncate leading-none">$0.00</div>
-                            </div>
-                            <!-- 4. Disponible -->
-                            <div class="bg-emerald-50/70 p-2.5 rounded-2xl border border-emerald-200/80 text-center flex flex-col justify-center">
-                                <div class="text-[9px] font-black uppercase text-emerald-600 tracking-wider">Disponible</div>
-                                <div id="pvCardSaldoDisponible" class="text-xs sm:text-sm font-black text-emerald-700 mt-1 truncate leading-none">$0.00</div>
-                            </div>
-                        </div>
-
-                        <!-- Sucursal y Vendedor Badge / Selector (col-span-2) -->
-                        <div class="xl:col-span-2 flex items-center justify-end gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
-                            <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-                                🏪
-                            </div>
-                            <div class="min-w-0 text-right w-full">
-                                <div class="text-[9px] font-black uppercase tracking-wider text-slate-400">Sucursal de Venta</div>
-                                <!-- Para Admin: Selector desplegable -->
-                                <div id="pvWrapSelectorSucursal" class="hidden">
-                                    <select id="pvSelectSucursalOperacion" onchange="pvCambiarSucursalOperacion(this.value)" class="w-full text-xs font-black text-indigo-700 bg-white border border-slate-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                        <!-- Opciones dinámicas -->
-                                    </select>
-                                </div>
-                                <!-- Para Vendedor Sucursal: Nombre fijo -->
-                                <div id="pvTxtSucursalFija" class="text-xs font-black text-slate-900 truncate">Sucursal Principal</div>
-                                <div id="pvTxtVendedorNombre" class="text-[10px] text-slate-500 font-semibold truncate">Vendedor Mostrador</div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- 2. BARRA DE BÚSQUEDA Y FILTROS VEHICULARES (Touch & Tablet Optimized) -->
-                    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 space-y-3">
-                        <!-- Input Principal de Búsqueda de Refacciones -->
-                        <div class="flex flex-col sm:flex-row items-center gap-2">
-                            <div class="relative flex-1 w-full">
-                                <input type="text" id="pvInputBusquedaArticulo"
-                                       placeholder="Buscar por código, descripción, número de parte, equivalencia, marca o VIN..."
-                                       onkeyup="if(event.key==='Enter') pvEjecutarBusquedaArticulos();"
-                                       class="w-full text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 pl-11 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
-                                <span class="absolute left-4 top-3.5 text-slate-400 text-sm">🔍</span>
-                                <button type="button" id="pvBtnLimpiarBusqArt" onclick="pvLimpiarBusquedaArticulos()" class="hidden absolute right-4 top-3 text-slate-400 hover:text-slate-700 text-base font-bold cursor-pointer">
-                                    &times;
-                                </button>
-                            </div>
-                            <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap">
-                                <button type="button" onclick="pvEjecutarBusquedaArticulos()" class="w-full sm:w-auto h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition shadow-md shadow-indigo-600/20 active:scale-95 cursor-pointer flex items-center justify-center gap-2">
-                                    <span>Buscar</span>
-                                </button>
-                                <button type="button" onclick="pvLimpiarFiltrosVehiculares()" title="Restablecer filtros" class="h-12 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-2xl transition cursor-pointer flex items-center justify-center">
-                                    Limpiar
-                                </button>
-                                <button type="button" onclick="pvAbrirModalMisSolicitudes()" title="Ver historial de solicitudes de traspaso enviadas a CEDIS / Compras" class="h-12 px-4 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">
-                                    <span>🚚</span>
-                                    <span>Solicitudes a CEDIS</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Fila de 6 Selectores Vehiculares con botones táctiles -->
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-1">
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">1. Año</label>
-                                <select id="pvFiltroAnio" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Todos los años</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">2. Marca</label>
-                                <select id="pvFiltroMarca" onchange="pvAlCambiarMarca()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Todas las marcas</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">3. Modelo</label>
-                                <select id="pvFiltroModelo" onchange="pvAlCambiarModelo()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Todos los modelos</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">4. Submodelo</label>
-                                <select id="pvFiltroSubmodelo" onchange="pvAlCambiarSubmodelo()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Cualquier versión</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">5. Motor</label>
-                                <select id="pvFiltroMotor" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Cualquier motor</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">6. Tipo de Producto</label>
-                                <select id="pvFiltroProducto" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                                    <option value="">Todas las familias</option>
-                                    <option value="AMORTIGUADOR">🔩 Amortiguadores</option>
-                                    <option value="ACUMULADOR">🔋 Acumuladores</option>
-                                    <option value="FILTRO">🛢️ Filtros</option>
-                                    <option value="BUJIA">⚡ Bujías</option>
-                                    <option value="BALATA">🛑 Frenos / Balatas</option>
-                                    <option value="SUSPENSION">🚗 Suspensión</option>
-                                    <option value="DIRECCION">🧭 Dirección</option>
-                                    <option value="SOPORTE">🧱 Soportes</option>
-                                    <option value="ACEITE">🧪 Aceites</option>
-                                    <option value="BANDA">🔄 Bandas</option>
-                                    <option value="MAZA">💿 Mazas y Baleros</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Barra de Estado / Contador de Coincidencias -->
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-                            <div id="pvInfoFiltrosActivos" class="font-medium truncate">
-                                Selecciona un vehículo o escribe un código para iniciar la consulta.
-                            </div>
-                            <div class="font-bold text-slate-700 shrink-0">
-                                Refacciones encontradas: <span id="pvConteoArticulosEncontrados" class="font-black text-indigo-600">0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. WORKSPACE 2-COLUMNAS: CATÁLOGO DE REFACCIONES + PUNTO DE VENTA EN CURSO (CARRITO) -->
+                    <!-- WORKSPACE 2-COLUMNAS: IZQUIERDA (CLIENTE + BUSCADOR + CATÁLOGO) | DERECHA (PUNTO DE VENTA EN CURSO) -->
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                         
-                        <!-- Columna Izquierda: Grid de Tarjetas de Artículos (col-span-7) -->
-                        <div class="lg:col-span-7 space-y-3">
-                            <div id="pvGridArticulos" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <!-- COLUMNA IZQUIERDA: CLIENTE + VEHÍCULOS/BÚSQUEDA + RESULTADOS (lg:col-span-7) -->
+                        <div class="lg:col-span-7 space-y-3.5">
+
+                            <!-- 1. TOP BAR: CLIENTE, CRÉDITO EN VIVO Y VENDEDOR (Dos tiras: Superior Cliente + Sucursal | Inferior Datos y Saldos) -->
+                            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-3.5 space-y-2.5">
+                                
+                                <!-- TIRA 1: CLIENTE / BUSCADOR + SUCURSAL Y HORA -->
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2.5 border-b border-slate-100">
+                                    
+                                    <!-- Lado Izquierdo: Buscador o Cliente Seleccionado -->
+                                    <div class="flex-1 w-full min-w-0">
+                                        <!-- Vista: Buscando / Sin cliente -->
+                                        <div id="pvBoxBusquedaCliente" class="relative">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1 shrink-0">
+                                                    <span>👤</span> Cliente:
+                                                </span>
+                                                <div class="relative flex-1 min-w-0">
+                                                    <input type="text" id="pvInputCliente" placeholder="Buscar cliente por nombre o teléfono..." autocomplete="off"
+                                                           class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 pl-7 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
+                                                    <span class="absolute left-2 top-1.5 text-slate-400 text-xs">🔍</span>
+                                                </div>
+                                                <button type="button" onclick="pvBuscarClienteManual()" title="Buscar cliente" class="h-8 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1 active:scale-95 shadow-xs shrink-0">
+                                                    Buscar
+                                                </button>
+                                            </div>
+                                            <!-- Dropdown Resultados de Clientes -->
+                                            <div id="pvDropdownClientes" class="hidden absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
+                                            </div>
+                                        </div>
+
+                                        <!-- Vista: Cliente Seleccionado (Arriba el cliente y cambiar cliente) -->
+                                        <div id="pvBoxClienteSeleccionado" class="hidden flex items-center justify-between gap-3 bg-slate-50/90 hover:bg-slate-100/60 px-3.5 py-1.5 rounded-2xl border border-slate-200/90 transition">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">✓</span>
+                                                <span id="pvClienteNombre" class="text-sm font-black text-slate-900 tracking-tight truncate" title="Cliente Seleccionado">CLIENTE</span>
+                                            </div>
+                                            <button type="button" onclick="pvDeseleccionarCliente()" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-white hover:bg-rose-50 px-2.5 py-1 rounded-xl transition shrink-0 cursor-pointer border border-rose-200 shadow-2xs active:scale-95">
+                                                <span>Cambiar</span>
+                                                <span class="font-black leading-none">✕</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lado Derecho: Sucursal de Venta + Reloj -->
+                                    <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+                                        <!-- Selector Sucursal -->
+                                        <div class="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/80">
+                                            <span class="text-xs">🏪</span>
+                                            <div class="text-right">
+                                                <div class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 leading-none">Sucursal</div>
+                                                <div id="pvWrapSelectorSucursal" class="hidden mt-0.5">
+                                                    <select id="pvSelectSucursalOperacion" onchange="pvCambiarSucursalOperacion(this.value)" class="text-[11px] font-black text-indigo-700 bg-white border border-slate-300 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                                    </select>
+                                                </div>
+                                                <div id="pvTxtSucursalFija" class="text-xs font-black text-slate-900 leading-tight">Sucursal Principal</div>
+                                                <div id="pvTxtVendedorNombre" class="text-[8.5px] text-slate-500 font-semibold leading-none">Vendedor Mostrador</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Reloj Fecha / Hora -->
+                                        <div class="flex flex-col items-end text-[9px] font-mono font-bold text-slate-500 gap-0.5">
+                                            <span id="pvRelojFecha" class="bg-slate-100 px-1.5 py-0.5 rounded text-[8.5px] text-slate-600">2026-10-09</span>
+                                            <span id="pvRelojHora" class="bg-slate-900 text-white px-1.5 py-0.5 rounded font-mono text-[8.5px]">15:30:00</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- TIRA 2: DATOS DEL CLIENTE (Tabla Asignada, Forma de Cobro y Tarjetas de Crédito) -->
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-0.5">
+                                    
+                                    <!-- Badges de Condición Comercial del Cliente -->
+                                    <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                                        <span id="pvBadgeTablaAsignada" class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1.5 rounded-xl border border-indigo-200/90 shadow-2xs whitespace-nowrap">
+                                            Tabla Asignada: Talleres y Flotillas
+                                        </span>
+                                        <span id="pvBadgeFormaCobro" class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-xl border border-slate-200/90 shadow-2xs whitespace-nowrap">
+                                            FORMA DE COBRO: CREDITO 30 DIAS
+                                        </span>
+                                    </div>
+
+                                    <!-- 4 Tarjetas de Saldos de Crédito Completas -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 lg:max-w-xl min-w-0">
+                                        <!-- 1. Límite -->
+                                        <div class="bg-slate-50/90 hover:bg-slate-100/90 transition px-2.5 py-1.5 rounded-xl border border-slate-200/90 text-center flex flex-col justify-center min-w-0 shadow-2xs" title="Límite de Crédito">
+                                            <div class="text-[8px] sm:text-[8.5px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">Límite Crédito</div>
+                                            <div id="pvCardLimiteCredito" class="text-xs sm:text-sm font-black text-slate-800 mt-0.5 whitespace-nowrap tabular-nums tracking-tight leading-none">$0.00</div>
+                                        </div>
+                                        <!-- 2. Vencido -->
+                                        <div class="bg-rose-50/70 hover:bg-rose-100/80 transition px-2.5 py-1.5 rounded-xl border border-rose-200/80 text-center flex flex-col justify-center min-w-0 shadow-2xs" title="Saldo Vencido">
+                                            <div class="text-[8px] sm:text-[8.5px] font-black uppercase text-rose-500 tracking-wider whitespace-nowrap">Saldo Vencido</div>
+                                            <div id="pvCardSaldoVencido" class="text-xs sm:text-sm font-black text-slate-800 mt-0.5 whitespace-nowrap tabular-nums tracking-tight leading-none">$0.00</div>
+                                        </div>
+                                        <!-- 3. Saldo Actual -->
+                                        <div class="bg-slate-50/90 hover:bg-slate-100/90 transition px-2.5 py-1.5 rounded-xl border border-slate-200/90 text-center flex flex-col justify-center min-w-0 shadow-2xs" title="Saldo Actual">
+                                            <div class="text-[8px] sm:text-[8.5px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap">Saldo Actual</div>
+                                            <div id="pvCardSaldoCliente" class="text-xs sm:text-sm font-black text-slate-800 mt-0.5 whitespace-nowrap tabular-nums tracking-tight leading-none">$0.00</div>
+                                        </div>
+                                        <!-- 4. Disponible -->
+                                        <div class="bg-emerald-50/70 hover:bg-emerald-100/80 transition px-2.5 py-1.5 rounded-xl border border-emerald-200/80 text-center flex flex-col justify-center min-w-0 shadow-2xs" title="Disponible">
+                                            <div class="text-[8px] sm:text-[8.5px] font-black uppercase text-emerald-600 tracking-wider whitespace-nowrap">Disponible</div>
+                                            <div id="pvCardSaldoDisponible" class="text-xs sm:text-sm font-black text-emerald-700 mt-0.5 whitespace-nowrap tabular-nums tracking-tight leading-none">$0.00</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- 2. BARRA DE BÚSQUEDA Y FILTROS VEHICULARES (Touch & Tablet Optimized) -->
+                            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-3.5 space-y-2.5">
+                                <!-- Input Principal de Búsqueda de Refacciones -->
+                                <div class="flex flex-col sm:flex-row items-center gap-2">
+                                    <div class="relative flex-1 w-full">
+                                        <input type="text" id="pvInputBusquedaArticulo"
+                                               placeholder="Buscar por código, descripción, número de parte, equivalencia, marca o VIN..."
+                                               onkeyup="if(event.key==='Enter') pvEjecutarBusquedaArticulos();"
+                                               class="w-full text-xs sm:text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 pl-10 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
+                                        <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
+                                        <button type="button" id="pvBtnLimpiarBusqArt" onclick="pvLimpiarBusquedaArticulos()" class="hidden absolute right-3.5 top-2 text-slate-400 hover:text-slate-700 text-base font-bold cursor-pointer">
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 w-full sm:w-auto shrink-0 flex-wrap">
+                                        <button type="button" onclick="pvEjecutarBusquedaArticulos()" class="w-full sm:w-auto h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-indigo-600/20 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                                            <span>Buscar</span>
+                                        </button>
+                                        <button type="button" onclick="pvLimpiarFiltrosVehiculares()" title="Restablecer filtros" class="h-10 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center">
+                                            Limpiar
+                                        </button>
+                                        <button type="button" onclick="pvAbrirModalMisSolicitudes()" title="Ver historial de solicitudes de traspaso enviadas a CEDIS / Compras" class="h-10 px-3.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">
+                                            <span>🚚</span>
+                                            <span>Solicitar a CEDIS</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Fila de 6 Selectores Vehiculares con botones táctiles -->
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5 pt-0.5">
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">1. Año</label>
+                                        <select id="pvFiltroAnio" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Todos los años</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">2. Marca</label>
+                                        <select id="pvFiltroMarca" onchange="pvAlCambiarMarca()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Todas las marcas</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">3. Modelo</label>
+                                        <select id="pvFiltroModelo" onchange="pvAlCambiarModelo()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Todos los modelos</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">4. Submodelo</label>
+                                        <select id="pvFiltroSubmodelo" onchange="pvAlCambiarSubmodelo()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Cualquier versión</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">5. Motor</label>
+                                        <select id="pvFiltroMotor" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Cualquier motor</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] font-black uppercase text-slate-400 mb-0.5">6. Tipo Producto</label>
+                                        <select id="pvFiltroProducto" onchange="pvAlCambiarFiltroVehicular()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                                            <option value="">Todas las familias</option>
+                                            <option value="AMORTIGUADOR">🔩 Amortiguadores</option>
+                                            <option value="ACUMULADOR">🔋 Acumuladores</option>
+                                            <option value="FILTRO">🛢️ Filtros</option>
+                                            <option value="BUJIA">⚡ Bujías</option>
+                                            <option value="BALATA">🛑 Frenos / Balatas</option>
+                                            <option value="SUSPENSION">🚗 Suspensión</option>
+                                            <option value="DIRECCION">🧭 Dirección</option>
+                                            <option value="SOPORTE">🧱 Soportes</option>
+                                            <option value="ACEITE">🧪 Aceites</option>
+                                            <option value="BANDA">🔄 Bandas</option>
+                                            <option value="MAZA">💿 Mazas y Baleros</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Barra de Estado / Contador de Coincidencias -->
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
+                                    <div id="pvInfoFiltrosActivos" class="font-medium truncate">
+                                        Selecciona un vehículo o escribe un valor para iniciar la consulta.
+                                    </div>
+                                    <div class="font-bold text-slate-700 shrink-0">
+                                        Refacciones encontradas: <span id="pvConteoArticulosEncontrados" class="font-black text-indigo-600">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. CATÁLOGO DE REFACCIONES / RESULTADOS -->
+                            <div id="pvGridArticulos" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 <!-- Placeholder inicial amigable cuando no se ha buscado nada -->
-                                <div class="col-span-full bg-slate-50/70 border-2 border-dashed border-slate-200 p-12 text-center rounded-3xl">
-                                    <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-3xl shadow-xs">
+                                <div class="col-span-full bg-slate-50/70 border-2 border-dashed border-slate-200 p-10 text-center rounded-3xl">
+                                    <div class="w-14 h-14 mx-auto mb-2.5 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-xs">
                                         🔍
                                     </div>
-                                    <h3 class="text-base font-black text-slate-800">Catálogo de Mostrador Listo</h3>
+                                    <h3 class="text-sm font-black text-slate-800">Catálogo de Mostrador Listo</h3>
                                     <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
-                                        Escribe un código, descripción o equivalente arriba, o selecciona los filtros de vehículo para consultar refacciones y existencias.
+                                        Escribe un código, descripción o equivalente arriba, o selecciona los filtros de vehículo y presiona 'Buscar'.
                                     </p>
                                 </div>
                             </div>
+
                         </div>
 
-                        <!-- Columna Derecha: PUNTO DE VENTA EN CURSO (CARRITO TOUCH) (col-span-5) -->
+                        <!-- COLUMNA DERECHA: PUNTO DE VENTA EN CURSO (CARRITO TOUCH) (lg:col-span-5 sticky top-4) -->
                         <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 space-y-3.5 sticky top-4">
                             
                             <!-- Header Carrito -->
@@ -919,6 +970,12 @@
                         <div class="overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Col 1: Información y Acciones -->
                             <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <!-- Foto Ampliada del Artículo -->
+                                <div id="pvModalFotoContainer" class="h-32 w-full bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden p-2 shadow-2xs">
+                                    <img id="pvModalFotoImg" class="max-h-full max-w-full object-contain hidden" alt="Foto Artículo">
+                                    <span id="pvModalFotoIcon" class="text-4xl text-slate-300">📦</span>
+                                </div>
+
                                 <div>
                                     <div class="text-[10px] font-black uppercase text-slate-400">Inventario Almacén</div>
                                     <div id="pvModalStockAlmacen" class="text-lg font-black text-emerald-600">0 pzas</div>
@@ -1428,7 +1485,7 @@
                             </div>
 
                             <!-- Tarjeta 6: Validación de Traspasos PV -->
-                            <div id="cardLaunchpadSolicitudesTraspasos" class="bg-gradient-to-br from-slate-50 to-amber-50/40 p-4 rounded-2xl border border-slate-200 hover:border-amber-400 hover:shadow-md transition space-y-3 flex flex-col justify-between">
+                            <div id="cardLaunchpadSolicitudesTraspasos" class="hidden bg-gradient-to-br from-slate-50 to-amber-50/40 p-4 rounded-2xl border border-slate-200 hover:border-amber-400 hover:shadow-md transition space-y-3 flex flex-col justify-between">
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
                                         <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black shadow-sm text-lg">
@@ -1524,7 +1581,7 @@
                 </div>
 
                 <!-- ================= MÓDULO 1: IMPORTADOR XML ================= -->
-                <div id="modulo1Content" class="space-y-4">
+                <div id="modulo1Content" class="hidden space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
                         <!-- Columna 1: Proveedor de la Factura (lg:col-span-4) -->
                         <div class="lg:col-span-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm relative flex flex-col justify-between">
@@ -2341,6 +2398,10 @@
                             <button type="button" id="tabSubAlmCascos" onclick="cambiarSubTabAlmacen('cascos')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200">
                                 <svg class="w-3.5 h-3.5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 <span>Control de Cascos</span>
+                            </button>
+                            <button type="button" id="tabSubAlmEmbarques" onclick="cambiarSubTabAlmacen('embarques')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200">
+                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                <span>Embarques y Empaque</span>
                             </button>
                         </div>
                     </div>
@@ -3196,6 +3257,402 @@
                         </div>
 
                     </div>
+
+                    <!-- ================= SUB-MÓDULO 5: EMBARQUES Y EMPAQUE (ZEBRA + TRACKING) ================= -->
+                    <div id="subAlmEmbarquesContent" class="hidden space-y-4">
+                        <!-- Hero Banner y Mini Dashboard de Tarjetas Grandes -->
+                        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 p-5 rounded-3xl text-white shadow-xl border border-blue-900/40 space-y-4">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl border border-blue-500/30 shadow-inner">
+                                        🚚
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-base font-black uppercase tracking-wide text-white">Embarques y Empaque de Mercancía</h3>
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                                                Etiquetas Zebra & Cajas
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-slate-300 font-medium">Surtido y empaque de resurtidos o pedidos a clientes en cajas foliadas con guion (10003-1, 10003-2), escaneo USB y tracking en ruta.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="cargarDashboardEmbarques()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-950 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        <span>Actualizar Estatus</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Dashboard con Tarjetas Grandes de Estatus -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+                                <!-- 1: Total Pedidos/Embarques -->
+                                <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-700/60 shadow-sm flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-300 flex items-center justify-center text-lg">
+                                        📋
+                                    </div>
+                                    <div>
+                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Total Embarques</div>
+                                        <div id="kpiEmbarquesTotal" class="text-xl font-black text-white font-mono">0</div>
+                                        <div class="text-[9px] text-slate-400 font-medium">Histórico activo</div>
+                                    </div>
+                                </div>
+
+                                <!-- 2: Preparando / Empacando -->
+                                <div class="bg-amber-950/40 p-3.5 rounded-2xl border border-amber-600/40 shadow-sm flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                                        📦
+                                    </div>
+                                    <div>
+                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-amber-400">En Preparación</div>
+                                        <div id="kpiEmbarquesPreparando" class="text-xl font-black text-amber-300 font-mono">0</div>
+                                        <div class="text-[9px] text-amber-400/80 font-medium">Cajas empacándose</div>
+                                    </div>
+                                </div>
+
+                                <!-- 3: En Tránsito / Chofer -->
+                                <div class="bg-blue-950/40 p-3.5 rounded-2xl border border-blue-500/40 shadow-sm flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+                                        🚛
+                                    </div>
+                                    <div>
+                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400">En Tránsito</div>
+                                        <div id="kpiEmbarquesTransito" class="text-xl font-black text-blue-300 font-mono">0</div>
+                                        <div class="text-[9px] text-blue-400/80 font-medium">En ruta con chofer</div>
+                                    </div>
+                                </div>
+
+                                <!-- 4: Recibidos en Sucursal -->
+                                <div class="bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-600/40 shadow-sm flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                                        ✅
+                                    </div>
+                                    <div>
+                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400">Recibidos</div>
+                                        <div id="kpiEmbarquesRecibido" class="text-xl font-black text-emerald-300 font-mono">0</div>
+                                        <div class="text-[9px] text-emerald-400/80 font-medium">Entregados en tienda</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Navegación Interna de Embarques -->
+                        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="tabSubEmbarquesListado" onclick="cambiarSubTabEmbarquesInterno('listado')" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 bg-slate-900 text-white shadow-sm cursor-pointer">
+                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    <span>Listado y Tracking</span>
+                                </button>
+                                <button type="button" id="tabSubEmbarquesNuevo" onclick="cambiarSubTabEmbarquesInterno('nuevo')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Nuevo Empaque / Escáner</span>
+                                </button>
+                                <button type="button" id="tabSubEmbarquesChofer" onclick="cambiarSubTabEmbarquesInterno('chofer')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">
+                                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                    <span>Salida Chofer (Escanear Cajas)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- VISTA 1: LISTADO DE EMBARQUES Y TRACKING -->
+                        <div id="vistaEmbarquesListado" class="space-y-3">
+                            <!-- Filtros y Búsqueda -->
+                            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div class="flex-1 flex flex-wrap items-center gap-2.5">
+                                    <div class="relative flex-1 min-w-[200px]">
+                                        <input type="text" id="filtroEmbarquesTermino" placeholder="Buscar por folio, destino o documento..." class="w-full text-xs font-semibold pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <select id="filtroEmbarquesEstatus" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 text-slate-700 focus:ring-2 focus:ring-blue-600">
+                                        <option value="">Todos los Estatus</option>
+                                        <option value="PREPARANDO">En Preparación</option>
+                                        <option value="EN_TRANSITO">En Tránsito</option>
+                                        <option value="RECIBIDO">Recibido</option>
+                                    </select>
+                                    <button type="button" onclick="cargarListadoEmbarques()" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">
+                                        Filtrar
+                                    </button>
+                                </div>
+                                <button type="button" onclick="cambiarSubTabEmbarquesInterno('nuevo')" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Iniciar Nuevo Empaque</span>
+                                </button>
+                            </div>
+
+                            <!-- Tabla de Embarques -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-50 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">
+                                                <th class="py-3 px-3.5">Folio Base</th>
+                                                <th class="py-3 px-3.5">Tipo / Ref</th>
+                                                <th class="py-3 px-3.5">Destino</th>
+                                                <th class="py-3 px-3.5 text-center">Cajas</th>
+                                                <th class="py-3 px-3.5 text-center">Pzas</th>
+                                                <th class="py-3 px-3.5 text-center">Estatus</th>
+                                                <th class="py-3 px-3.5">Chofer / En Camino</th>
+                                                <th class="py-3 px-3.5">Fecha</th>
+                                                <th class="py-3 px-3.5 text-right">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaEmbarquesListadoBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                            <tr>
+                                                <td colspan="9" class="p-8 text-center text-slate-400 italic">Cargando embarques...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VISTA 2: NUEVO EMPAQUE Y ESCÁNER DE CÓDIGO DE BARRAS -->
+                        <div id="vistaEmbarquesNuevo" class="hidden space-y-4">
+                            <!-- Paso 1: Configurar Origen del Embarque -->
+                            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center">1</span>
+                                        <h4 class="text-xs font-black uppercase text-slate-900 tracking-wide">Configurar Resurtido o Pedido a Surtir</h4>
+                                    </div>
+                                    <div id="badgeFolioAsignado" class="text-xs font-black text-blue-700 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200 font-mono">
+                                        Folio Base: --
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Tipo de Embarque</label>
+                                        <select id="selectNuevoEmbarqueTipo" class="w-full text-xs font-bold border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-blue-600">
+                                            <option value="RESURTIDO_TRASPASO">Resurtido / Traspaso de Sucursal</option>
+                                            <option value="PEDIDO_CLIENTE">Pedido a Cliente</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Sucursal / Destino</label>
+                                        <select id="selectNuevoEmbarqueDestinoSucursal" class="w-full text-xs font-bold border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-blue-600">
+                                            <option value="">-- Selecciona Destino --</option>
+                                        </select>
+                                        <input type="text" id="inputNuevoEmbarqueCliente" placeholder="Nombre de Cliente..." class="hidden w-full text-xs font-bold border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-600">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Docto. Microsip / Folio Ref (Opcional)</label>
+                                        <div class="flex items-center gap-1.5">
+                                            <input type="text" id="inputNuevoEmbarqueDoctoOrigen" placeholder="Ej. T00123" class="w-full text-xs font-mono font-bold border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-600 uppercase">
+                                            <button type="button" onclick="cargarItemsDesdeOrigenMicrosip()" title="Cargar artículos de este traspaso de Microsip" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition cursor-pointer">
+                                                🔍
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-end">
+                                        <button type="button" id="btnCrearOIniciarEmbarque" onclick="iniciarSesionEmpaque()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
+                                            <span>▶ Iniciar Empaque</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Panel de Traspasos y Documentos Pendientes de Embarque (Microsip) -->
+                                <div class="mt-4 pt-3.5 border-t border-slate-100">
+                                    <div class="flex items-center justify-between mb-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <h5 class="text-xs font-black uppercase text-slate-800 tracking-wider">Traspasos y Documentos Pendientes en Microsip</h5>
+                                            <span id="badgeTotalPendientesEmbarque" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-200">
+                                                Cargando...
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" onclick="cargarTraspasosPendientesEmbarque()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200 transition cursor-pointer flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                <span>Refrescar</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                                        <div class="max-h-56 overflow-y-auto divide-y divide-slate-100" id="listaDoctosPendientesEmbarque">
+                                            <div class="p-4 text-center text-xs text-slate-400 italic">Cargando traspasos pendientes...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Paso 2: Escaneo y Empaque por Cajas -->
+                            <div id="panelEmpaqueCajas" class="hidden space-y-4">
+                                <!-- Banner de la Caja Actual -->
+                                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-4 rounded-3xl text-white shadow-xl border border-indigo-900/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-400 font-mono font-black text-xl flex items-center justify-center border border-amber-400/30">
+                                            📦
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-sm font-black uppercase text-white tracking-wide">Empacando Caja: <span id="txtFolioCajaActual" class="text-amber-400 font-mono font-black text-base">--</span></h4>
+                                                <span id="badgeCajaNumero" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                                                    Caja 1
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-300 font-medium">Escanea los códigos de barras de los artículos que van dentro de esta caja específica.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-right mr-2">
+                                            <div class="text-[10px] text-slate-400 font-bold uppercase">Piezas en esta caja</div>
+                                            <div id="txtTotalPiezasCajaActual" class="text-lg font-black text-white font-mono">0 pzas</div>
+                                        </div>
+                                        <button type="button" onclick="cerrarCajaActualEImprimir()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-950/30 transition cursor-pointer flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                            <span>Cerrar Caja e Imprimir Etiqueta</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Escáner Barcode Hero -->
+                                <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-black uppercase text-slate-800 tracking-wide flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                            Escáner USB / Bluetooth de Artículos
+                                        </label>
+                                        <div class="flex items-center gap-2 text-xs">
+                                            <label class="flex items-center gap-1.5 text-slate-500 cursor-pointer select-none">
+                                                <input type="checkbox" id="chkAudioEscanerEmbarque" checked class="w-3.5 h-3.5 rounded text-blue-600">
+                                                <span>Sonido Escáner</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <input type="text" id="inputEscanerEmbarqueArticulo" autofocus placeholder="Pasa la pistola sobre el código de barras del artículo (o escribe la clave y presiona ENTER)..." class="w-full text-sm font-mono font-black pl-11 pr-24 py-3 bg-slate-50 border-2 border-blue-400 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:bg-white focus:outline-none transition">
+                                        <svg class="w-5 h-5 text-blue-600 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                        <button type="button" onclick="procesarScanEmbarqueInput()" class="absolute right-2 top-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition cursor-pointer">
+                                            Agregar
+                                        </button>
+                                    </div>
+                                    <div id="avisoUltimoArticuloEscaneado" class="hidden text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center justify-between">
+                                        <span id="txtUltimoEscaneado">Último: --</span>
+                                        <span class="text-[10px] text-emerald-600">+1 pza añadida</span>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de Artículos Empacados en la Caja Actual -->
+                                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                                        <span class="text-xs font-black uppercase text-slate-700 tracking-wide">Contenido de la Caja Actual</span>
+                                        <span id="txtContadorFilasCajaActual" class="text-[10px] font-bold text-slate-500">0 artículos distintos</span>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr class="bg-white text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                                                    <th class="py-2.5 px-3.5">Clave</th>
+                                                    <th class="py-2.5 px-3.5">Descripción</th>
+                                                    <th class="py-2.5 px-3.5 text-center">Código de Barras</th>
+                                                    <th class="py-2.5 px-3.5 text-center">Cantidad</th>
+                                                    <th class="py-2.5 px-3.5 text-right">Quitar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaItemsCajaActualBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                                <tr>
+                                                    <td colspan="5" class="p-6 text-center text-slate-400 italic">No hay artículos escaneados en esta caja. Pasa el escáner sobre el primer artículo.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Cajas Ya Empacadas de este Embarque -->
+                                <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                        <span class="text-xs font-black uppercase text-slate-900 tracking-wide">Cajas Empacadas en Este Embarque</span>
+                                        <span id="txtTotalCajasEmpacadas" class="text-xs font-black text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-lg font-mono">0 Cajas</span>
+                                    </div>
+                                    <div id="contenedorCajasEmpacadas" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div class="col-span-full p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-slate-200">
+                                            Aún no has cerrado ninguna caja. Cuando termines de meter artículos a la primera caja, presiona "Cerrar Caja e Imprimir Etiqueta".
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Botón Finalizar Todo el Embarque -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <button type="button" onclick="cancelarSesionEmpaqueActual()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+                                        Cancelar y Salir
+                                    </button>
+                                    <button type="button" onclick="finalizarEmbarqueCompleto()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-950/20 transition cursor-pointer flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <span>Finalizar Embarque Completo (Listo para Salida)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VISTA 3: CHOFER / MENSAJERO (ESCANEAR CAJAS AL SUBIR AL CAMIÓN) -->
+                        <div id="vistaEmbarquesChofer" class="hidden space-y-4">
+                            <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 rounded-3xl text-white shadow-xl border border-blue-900/50 space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl border border-blue-500/30">
+                                        🚛
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-black uppercase text-white tracking-wide">Salida a Ruta: Escaneo del Chofer / Mensajero</h4>
+                                        <p class="text-xs text-slate-300 font-medium">El mensajero escanea el código de barras de cada caja al subirla a la camioneta. Esto actualiza su estatus a <strong>EN TRÁNSITO</strong> en tiempo real.</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                                    <div class="md:col-span-1">
+                                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Nombre del Chofer / Mensajero</label>
+                                        <input type="text" id="inputChoferNombre" placeholder="Nombre de chofer o mensajero..." class="w-full text-xs font-bold px-3 py-2 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Escanear Código de Caja (ej. 10003-1)</label>
+                                        <div class="relative">
+                                            <input type="text" id="inputEscanerChoferCaja" autofocus placeholder="Pasa la pistola sobre la etiqueta Zebra de la caja..." class="w-full text-sm font-mono font-black pl-11 pr-24 py-2 bg-slate-800 text-white border-2 border-blue-500 rounded-xl focus:ring-4 focus:ring-blue-500/30 focus:outline-none">
+                                            <svg class="w-5 h-5 text-blue-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                            <button type="button" onclick="procesarScanChofer()" class="absolute right-1.5 top-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition cursor-pointer">
+                                                Cargar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Log en vivo de cajas subidas a la camioneta -->
+                            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden space-y-3 p-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                    <span class="text-xs font-black uppercase text-slate-800 tracking-wide">Cajas Escaneadas y Subidas en este Turno</span>
+                                    <span id="txtTotalCajasChoferTurno" class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg">0 cajas en tránsito</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                                                <th class="py-2.5 px-3.5">Folio Caja</th>
+                                                <th class="py-2.5 px-3.5">Folio Base</th>
+                                                <th class="py-2.5 px-3.5">Destino</th>
+                                                <th class="py-2.5 px-3.5 text-center">Piezas</th>
+                                                <th class="py-2.5 px-3.5">Chofer</th>
+                                                <th class="py-2.5 px-3.5">Hora Escaneo</th>
+                                                <th class="py-2.5 px-3.5 text-center">Estatus</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaChoferCajasBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                            <tr>
+                                                <td colspan="7" class="p-6 text-center text-slate-400 italic">No has escaneado ninguna caja en este turno. Pasa el lector sobre la caja a despachar.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ================= MÓDULO SUCURSALES ================= -->
@@ -3203,114 +3660,96 @@
                     <!-- Header Banner -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             </div>
                             <div>
-                                <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide">Módulo de Sucursales</h2>
-                                <p class="text-[11px] text-slate-500 font-medium">Directorio de tiendas, inventario en punto de venta y traspasos directos</p>
+                                <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide">Recepción de Embarques en Sucursales</h2>
+                                <p class="text-[11px] text-slate-500 font-medium">Recepción, escaneo y desempacado de cajas enviadas desde Almacén / CEDIS</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" id="btnRecargarSucursales" onclick="cargarSucursales(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                Actualizar Datos
+                    </div>
+
+                    <!-- ================= SUB-MÓDULO: RECEPCIÓN DE EMBARQUES EN SUCURSAL ================= -->
+                    <div id="subSucRecepcionContent" class="space-y-4">
+                    <!-- Banner de Recepción de Cajas -->
+                    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-3xl text-white shadow-xl border border-indigo-900/50 space-y-4">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl border border-indigo-500/30">
+                                    📥
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-base font-black uppercase tracking-wide text-white">Recepción de Cajas en Tienda</h3>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+                                            Escáner de Llegada
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-300 font-medium">Escanea la etiqueta Zebra de cada caja que llega en el camión a esta sucursal para confirmar su entrega.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-right">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Sucursal de Recepción:</span>
+                                    <select id="selectSucursalRecepcionActual" onchange="cargarCajasPendientesSucursal()" class="text-xs font-black bg-slate-800 text-amber-300 border border-slate-700 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-indigo-500">
+                                        <option value="">Cargando tienda...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Escáner Hero para la Sucursal -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Escanear Código de Caja al Recibir (ej. 10003-1)</label>
+                                <div class="relative">
+                                    <input type="text" id="inputEscanerRecepcionCaja" autofocus placeholder="Pasa la pistola sobre la etiqueta Zebra de la caja recibida..." class="w-full text-sm font-mono font-black pl-11 pr-24 py-2.5 bg-slate-800 text-white border-2 border-indigo-500 rounded-xl focus:ring-4 focus:ring-indigo-500/30 focus:outline-none">
+                                    <svg class="w-5 h-5 text-indigo-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                    <button type="button" onclick="procesarScanRecepcionSucursal()" class="absolute right-1.5 top-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition cursor-pointer">
+                                        Recibir
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col justify-center">
+                                <span class="text-[10px] font-bold uppercase text-slate-400">Cajas en Ruta hacia esta tienda</span>
+                                <span id="txtTotalCajasPendientesSucursal" class="text-lg font-black text-amber-300 font-mono">0 cajas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cajas Pendientes por Recibir en esta Tienda -->
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden space-y-3 p-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <span class="text-xs font-black uppercase text-slate-800 tracking-wide">Cajas en Tránsito hacia esta Sucursal</span>
+                            <button type="button" onclick="cargarCajasPendientesSucursal()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition cursor-pointer">
+                                Actualizar
                             </button>
                         </div>
-                    </div>
-
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-                        <!-- 1: Total Sucursales -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base">
-                                🏪
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Total Sucursales</div>
-                                <div id="kpiSucTotal" class="text-base font-black text-slate-900">--</div>
-                                <div class="text-[9px] text-slate-400 font-medium" id="kpiSucActivas">-- con stock</div>
-                            </div>
-                        </div>
-
-                        <!-- 2: Stock Total Sucursales -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-blue-200 bg-blue-50/20 shadow-sm flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-base">
-                                📦
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-blue-700">Stock Total Grupo</div>
-                                <div id="kpiSucPiezasTotal" class="text-base font-black text-blue-900">-- pzs</div>
-                                <div class="text-[9px] text-blue-600 font-medium">En tiendas</div>
-                            </div>
-                        </div>
-
-                        <!-- 3: Costo Total Existencia Grupo -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-sm flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-base">
-                                💰
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-amber-800">Costo Existencia Grupo</div>
-                                <div id="kpiSucCostoTotal" class="text-sm font-black text-amber-950 font-mono">--</div>
-                                <div class="text-[9px] text-amber-700 font-medium">Último costo compra</div>
-                            </div>
-                        </div>
-
-                        <!-- 4: Venta Total Hoy -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-base">
-                                💵
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">Venta Total Hoy</div>
-                                <div id="kpiSucVentaHoyTotal" class="text-sm font-black text-emerald-950 font-mono">--</div>
-                                <div class="text-[9px] text-emerald-600 font-medium">Sucursales del Grupo hoy</div>
-                            </div>
-                        </div>
-
-                        <!-- 5: Venta Promedio Diaria Total -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center text-base">
-                                📈
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-indigo-700">Prom. Grupo / Día</div>
-                                <div id="kpiSucVentaPromTotal" class="text-sm font-black text-indigo-950 font-mono">--</div>
-                                <div class="text-[9px] text-indigo-600 font-medium">Últimos 30 días</div>
-                            </div>
-                        </div>
-
-                        <!-- 6: Sucursal Líder y Traspaso Rápido -->
-                        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-2">
-                            <div class="truncate">
-                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Sucursal Líder</div>
-                                <div id="kpiSucLider" class="text-xs font-black text-slate-800 truncate" title="Mayor volumen">--</div>
-                                <button type="button" onclick="irATraspasos()" class="mt-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-sm">
-                                    <span>📦 Traspaso</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Buscador de sucursal -->
-                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black uppercase text-slate-800">Directorio de Tiendas</span>
-                            <span id="badgeTotalSucursales" class="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200">0 sucursales</span>
-                        </div>
-                        <div class="w-full sm:w-72">
-                            <input type="text" id="filtroGridSucursales" placeholder="Buscar sucursal por nombre..." class="w-full text-xs font-medium border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Grid de Sucursales -->
-                    <div id="gridSucursales" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                        <div class="col-span-full p-8 text-center text-slate-400 italic bg-white rounded-2xl border border-slate-200">
-                            Cargando sucursales...
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                                        <th class="py-2.5 px-3.5">Folio Caja</th>
+                                        <th class="py-2.5 px-3.5">Folio Base</th>
+                                        <th class="py-2.5 px-3.5">Ref. Docto</th>
+                                        <th class="py-2.5 px-3.5 text-center">Piezas</th>
+                                        <th class="py-2.5 px-3.5">Chofer</th>
+                                        <th class="py-2.5 px-3.5">Hora Salida</th>
+                                        <th class="py-2.5 px-3.5 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaCajasPendientesSucursalBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                    <tr>
+                                        <td colspan="7" class="p-6 text-center text-slate-400 italic">No hay cajas en camino hacia esta sucursal actualmente.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <!-- ================= MÓDULO ADMINISTRACIÓN DEL NEGOCIO ================= -->
                 <div id="moduloAdministracionContent" class="hidden space-y-4">
@@ -4199,7 +4638,7 @@
                                         <th class="p-2 text-right">Vta Pzas</th>
                                         <th class="p-2 text-right">Vta D.A.</th>
                                         <th class="p-2 text-right" title="Promedio de venta en los meses seleccionados">Promedio 6m</th>
-                                        <th class="p-2 text-right text-blue-700" title="Promedio de inventario para los días objetivo">Prom. 15d Inv.</th>
+                                        <th class="p-2 text-right text-blue-700" title="Promedio de inventario para los días objetivo" id="thResurtidoPromInv">Prom. <span id="lblDiasInvHeader">15</span>d Inv.</th>
                                         <th id="thResurtidoInvAlm" class="p-2 text-right">Inv. Sucursal</th>
                                         <th class="p-2 text-right">Inv. CEDIS</th>
                                         <th id="thResurtidoCantSurtir" class="p-2 text-right bg-blue-100/80 text-blue-950 font-black whitespace-nowrap" title="Cantidad exacta necesaria para el inventario objetivo sin redondear por múltiplos">Cantidad a Surtir</th>
@@ -4970,10 +5409,10 @@
                                         <span>Módulo: Almacén</span>
                                     </span>
                                 </label>
-                                <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded">4 Submódulos</span>
+                                <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded">5 Submódulos</span>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pl-2 sm:pl-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-2 sm:pl-3">
                                 <!-- Submódulo 1: Control de Traspasos -->
                                 <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-amber-400 hover:shadow-xs transition cursor-pointer select-none">
                                     <input type="checkbox" name="permisoMod" value="almacen_traspasos" data-padre="almacen" onchange="alCambiarSubmodulo('almacen')" class="chk-permiso w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 mt-0.5">
@@ -5004,6 +5443,14 @@
                                     <div>
                                         <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>🪖</span> Control de Cascos</div>
                                         <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Registro y seguimiento de cascos y equipo asignado.</div>
+                                    </div>
+                                </label>
+                                <!-- Submódulo 5: Embarques y Empaque -->
+                                <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-amber-400 hover:shadow-xs transition cursor-pointer select-none">
+                                    <input type="checkbox" name="permisoMod" value="almacen_embarques" data-padre="almacen" onchange="alCambiarSubmodulo('almacen')" class="chk-permiso w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 mt-0.5">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>🚚</span> Embarques y Empaque</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Empaque por cajas (10003-1), escáner, etiquetas Zebra y tracking.</div>
                                     </div>
                                 </label>
                             </div>
@@ -5074,29 +5521,40 @@
                             </div>
                         </div>
 
-                        <!-- MÓDULOS DIRECTOS DEL SISTEMA -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <!-- Módulo Sucursales -->
-                            <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/70">
-                                <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                    <input type="checkbox" name="permisoMod" value="sucursales" class="chk-permiso-padre mt-0.5 w-4 h-4 text-cyan-600 rounded border-slate-300 focus:ring-cyan-500">
-                                    <div>
-                                        <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>🏪</span> Sucursales</div>
-                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Venta hoy, promedio y valor de inventario por tienda.</div>
-                                    </div>
+                        <!-- 5. MÓDULO SUCURSALES (Con 1 submódulo) -->
+                        <div class="border border-blue-200/80 rounded-2xl p-3.5 bg-blue-50/20 space-y-2.5">
+                            <div class="flex items-center justify-between pb-2 border-b border-blue-100">
+                                <label class="flex items-center gap-2 cursor-pointer font-black text-slate-900 text-xs select-none">
+                                    <input type="checkbox" name="permisoMod" value="sucursales" data-modulo="sucursales" onchange="alCambiarModuloPadre('sucursales', this.checked)" class="chk-permiso-padre w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                                    <span class="flex items-center gap-1.5">
+                                        <span>🏪</span>
+                                        <span>Módulo: Sucursales</span>
+                                    </span>
                                 </label>
+                                <span class="text-[9px] font-black uppercase tracking-wider text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded">1 Submódulo</span>
                             </div>
 
-                            <!-- Módulo Administración -->
-                            <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/70">
-                                <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                    <input type="checkbox" name="permisoMod" value="administracion" class="chk-permiso-padre mt-0.5 w-4 h-4 text-slate-900 rounded border-slate-300 focus:ring-slate-900">
+                            <div class="grid grid-cols-1 gap-2 pl-2 sm:pl-3">
+                                <!-- Submódulo: Recepción de Embarques -->
+                                <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-xs transition cursor-pointer select-none">
+                                    <input type="checkbox" name="permisoMod" value="sucursales_recepcion" data-padre="sucursales" onchange="alCambiarSubmodulo('sucursales')" class="chk-permiso w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 mt-0.5">
                                     <div>
-                                        <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>💼</span> Administración</div>
-                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Finanzas, cartera CXC, balance y proveedores.</div>
+                                        <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>📥</span> Recepción de Embarques</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Escaneo y recepción de cajas enviadas a la sucursal asignada.</div>
                                     </div>
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- MÓDULO DIRECTO: ADMINISTRACIÓN -->
+                        <div class="border border-slate-200 rounded-2xl p-3 bg-slate-50/70">
+                            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                <input type="checkbox" name="permisoMod" value="administracion" class="chk-permiso-padre mt-0.5 w-4 h-4 text-slate-900 rounded border-slate-300 focus:ring-slate-900">
+                                <div>
+                                    <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1"><span>💼</span> Administración</div>
+                                    <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Finanzas, cartera CXC, balance y proveedores.</div>
+                                </div>
+                            </label>
                         </div>
 
                         <!-- 5. MÓDULO CONFIGURACIÓN (Con 4 submódulos) -->
@@ -5796,24 +6254,186 @@
         </div>
     </div>
 
+    <!-- ================= MODAL: ETIQUETA ZEBRA (4" x 6" TÉRMICA Y ZPL) ================= -->
+    <div id="modalEtiquetaZebra" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-8">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center">
+                        🏷️
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">Etiqueta Térmica para Caja (Zebra)</h3>
+                        <p class="text-[10px] text-slate-400">Formato estándar 4" x 6" (100mm x 150mm) / Código 128</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cerrarModalEtiquetaZebra()" class="text-slate-400 hover:text-slate-600 font-bold text-sm p-1 rounded-lg">✕</button>
+            </div>
+
+            <!-- Previsualización de la Etiqueta (Estilo Físico Térmico 4x6) -->
+            <div id="areaImpresionEtiqueta" class="border-2 border-dashed border-slate-300 rounded-2xl p-4 bg-white text-slate-900 mx-auto max-w-[340px] shadow-sm space-y-3 font-sans">
+                <!-- Header Etiqueta con Logo y Tipo -->
+                <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                    <img id="etiquetaLogoImg" src="/api/logo/logo%20bc" alt="Logo Empresa" class="h-8 max-w-[120px] object-contain">
+                    <div class="text-right">
+                        <div class="text-[9px] font-black uppercase tracking-wider text-slate-600">EMBARQUE / TRASPASO</div>
+                        <div id="etiquetaFechaCaja" class="text-[9px] font-mono font-bold text-slate-500">2026-10-09</div>
+                    </div>
+                </div>
+
+                <!-- Folio Caja en Grande -->
+                <div class="text-center py-1 bg-slate-100 rounded-xl border border-slate-300">
+                    <div class="text-[9px] font-extrabold uppercase text-slate-500">FOLIO DE CAJA</div>
+                    <div id="etiquetaFolioCaja" class="text-2xl font-black font-mono tracking-wider text-slate-900">10003-1</div>
+                    <div id="etiquetaIndiceCaja" class="text-[10px] font-black uppercase text-indigo-700">CAJA 1 DE 1</div>
+                </div>
+
+                <!-- Código de Barras SVG (Code 128) -->
+                <div class="text-center py-1">
+                    <div id="etiquetaBarcodeSvg" class="flex justify-center items-center h-16 w-full"></div>
+                    <div id="etiquetaBarcodeTexto" class="text-[10px] font-mono font-bold tracking-widest text-slate-800 mt-1">10003-1</div>
+                </div>
+
+                <!-- Datos del Destino y Contenido -->
+                <div class="border-t-2 border-b-2 border-slate-900 py-2 space-y-1 text-left">
+                    <div class="text-[9px] font-bold uppercase text-slate-500">DESTINO:</div>
+                    <div id="etiquetaDestinoNombre" class="text-sm font-black uppercase text-slate-900 truncate">SUCURSAL CENTRO</div>
+                    <div class="flex items-center justify-between pt-1 text-[11px] font-bold text-slate-700">
+                        <span>TOTAL PIEZAS EN CAJA:</span>
+                        <span id="etiquetaTotalPiezas" class="text-sm font-black font-mono text-slate-950 bg-slate-200 px-2 py-0.5 rounded">12 PZAS</span>
+                    </div>
+                </div>
+
+                <!-- Referencia Documento y Pie -->
+                <div class="flex items-center justify-between text-[9px] font-mono text-slate-600 pt-0.5">
+                    <div>DOCTO: <span id="etiquetaDoctoRef" class="font-bold">--</span></div>
+                    <div>SURTIDO POR: <span id="etiquetaUsuarioEmbarque" class="font-bold">ADMIN</span></div>
+                </div>
+            </div>
+
+            <!-- ZPL Raw String Oculto / Copiable -->
+            <input type="hidden" id="inputZplCodigoActual" value="">
+
+            <!-- Botones de Acción -->
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="copiarCodigoZplClipboard()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    <span>Copiar ZPL</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="cerrarModalEtiquetaZebra()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+                        Cerrar
+                    </button>
+                    <button type="button" onclick="imprimirEtiquetaZebraNativa()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Imprimir en Zebra</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: DETALLE DE EMBARQUE Y TIMELINE ================= -->
+    <div id="modalDetalleEmbarque" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-8">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        📦
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-black text-slate-900 uppercase">Detalle del Embarque</h3>
+                            <span id="modalDetalleEmbarqueFolioBadge" class="text-xs font-mono font-black text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">FOLIO: --</span>
+                        </div>
+                        <p id="modalDetalleEmbarqueSubtitulo" class="text-[11px] text-slate-500 font-medium">Destino: --</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cerrarModalDetalleEmbarque()" class="text-slate-400 hover:text-slate-600 font-bold text-sm p-1 rounded-lg">✕</button>
+            </div>
+
+            <!-- Cajas de este Embarque -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-black uppercase text-slate-800 tracking-wide">Cajas Empacadas</h4>
+                <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-200">
+                                <th class="p-2.5">Folio Caja</th>
+                                <th class="p-2.5 text-center">Piezas</th>
+                                <th class="p-2.5 text-center">Estatus</th>
+                                <th class="p-2.5">Chofer</th>
+                                <th class="p-2.5 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalDetalleEmbarqueCajasBody" class="divide-y divide-slate-200/70 font-medium text-slate-700">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Cargando cajas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timeline de Tracking -->
+            <div class="space-y-2 pt-2">
+                <h4 class="text-xs font-black uppercase text-slate-800 tracking-wide">Historial y Tracking en Ruta</h4>
+                <div id="modalDetalleEmbarqueTrackingTimeline" class="space-y-2 max-h-48 overflow-y-auto p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div class="text-xs text-slate-400 italic">Sin eventos de tracking registrados.</div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end">
+                <button type="button" onclick="cerrarModalDetalleEmbarque()" class="px-5 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition cursor-pointer">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CONTENIDO DE CAJA RECIBIDA ================= -->
+    <div id="modalContenidoCajaRecibida" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mx-auto shadow-inner">
+                    ✅
+                </div>
+                <h3 class="text-sm font-black text-slate-900 uppercase">¡Caja Recibida con Éxito!</h3>
+                <p class="text-xs text-slate-500">Se ha confirmado la llegada de la caja <strong id="modalRecibidaFolioCaja" class="font-mono text-slate-900">--</strong> a la sucursal.</p>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1.5 max-h-60 overflow-y-auto">
+                <div class="text-[10px] font-bold uppercase text-slate-400">Artículos Ingresados:</div>
+                <div id="modalRecibidaListaArticulos" class="space-y-1 text-xs">
+                    <!-- Items dinámicos -->
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-center">
+                <button type="button" onclick="cerrarModalContenidoCajaRecibida()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer">
+                    Entendido / Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPT DE CONTROL -->
     <!-- SCRIPTS MODULARES -->
-    <script src="/static/js/paleta_tema.js?v=20261007_topnav"></script>
-    <script src="/static/js/app_core.js?v=20261007_cascos1"></script>
-    <script src="/static/js/modulo_dashboard.js?v=20261006_cli"></script>
-    <script src="/static/js/modulo_ventas.js?v=20261006_suc"></script>
-    <script src="/static/js/modulo_pv.js?v=20261006_grupo"></script>
-    <script src="/static/js/modulo_administracion.js?v=20261005_1"></script>
-    <script src="/static/js/modulo_almacen.js?v=20261007_cascos1"></script>
-    <script src="/static/js/modulo_compras.js?v=20261006_iva"></script>
-    <script src="/static/js/modulo_ciosa.js?v=20261006_iva"></script>
-    <script src="/static/js/modulo_traspasos.js?v=20261007_print1"></script>
-    <script src="/static/js/modulo_buscador_traspasos.js?v=20261003_4"></script>
-    <script src="/static/js/modulo_buscador_articulos.js?v=20261003_4"></script>
-    <script src="/static/js/modulo_resurtidos.js?v=20261007_2cols"></script>
-    <script src="/static/js/modulo_bot_whatsapp.js?v=20261007_1"></script>
-    <script src="/static/js/modulo_vendedores_comisiones.js?v=20261007_cascos1"></script>
-    <script src="/static/js/modulo_config_comisiones.js?v=20261007_cascos1"></script>
-    <script src="/static/js/modulo_cascos.js?v=20261007_cascos1"></script>
+    <script src="/static/js/paleta_tema.js?v=20261009_v5"></script>
+    <script src="/static/js/app_core.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_dashboard.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_ventas.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_pv.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_administracion.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_almacen.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_embarques.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_compras.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_ciosa.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_traspasos.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_buscador_traspasos.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_buscador_articulos.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_resurtidos.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_bot_whatsapp.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_vendedores_comisiones.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_config_comisiones.js?v=20261009_v5"></script>
+    <script src="/static/js/modulo_cascos.js?v=20261009_v5"></script>
 </body>
 </html>

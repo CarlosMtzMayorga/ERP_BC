@@ -36,7 +36,8 @@
                 'escaner': 'almacen_traspasos',
                 'catalogo': 'almacen_stock',
                 'recepcion_compra': 'almacen_recepcion',
-                'cascos': 'almacen_cascos'
+                'cascos': 'almacen_cascos',
+                'embarques': 'almacen_embarques'
             };
             activarTab(mapSub[subTab] || 'almacen');
         }
@@ -46,16 +47,19 @@
             const catalogoContent = document.getElementById('subAlmCatalogoContent');
             const recepcionContent = document.getElementById('subAlmRecepcionContent');
             const cascosContent = document.getElementById('subAlmCascosContent');
+            const embarquesContent = document.getElementById('subAlmEmbarquesContent');
 
             const btnEscaner = document.getElementById('tabSubAlmEscaner');
             const btnCatalogo = document.getElementById('tabSubAlmCatalogo');
             const btnRecepcion = document.getElementById('tabSubAlmRecepcion');
             const btnCascos = document.getElementById('tabSubAlmCascos');
+            const btnEmbarques = document.getElementById('tabSubAlmEmbarques');
 
             const sideEscaner = document.getElementById('tabBtnAlmEscaner');
             const sideCatalogo = document.getElementById('tabBtnAlmCatalogo');
             const sideRecepcion = document.getElementById('tabBtnAlmRecepcion');
             const sideCascos = document.getElementById('tabBtnAlmCascos');
+            const sideEmbarques = document.getElementById('tabBtnAlmEmbarques');
 
             const tabInactivo = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 cursor-pointer";
             const tabActivo = "px-3.5 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 bg-slate-900 text-white shadow-sm cursor-pointer";
@@ -65,18 +69,28 @@
             if (btnCatalogo) btnCatalogo.className = tabInactivo;
             if (btnRecepcion) btnRecepcion.className = tabInactivo;
             if (btnCascos) btnCascos.className = tabInactivo;
+            if (btnEmbarques) btnEmbarques.className = tabInactivo;
 
             if (sideEscaner) sideEscaner.className = sideInactivo;
             if (sideCatalogo) sideCatalogo.className = sideInactivo;
             if (sideRecepcion) sideRecepcion.className = sideInactivo;
             if (sideCascos) sideCascos.className = sideInactivo;
+            if (sideEmbarques) sideEmbarques.className = sideInactivo;
 
             if (escanerContent) escanerContent.classList.add('hidden');
             if (catalogoContent) catalogoContent.classList.add('hidden');
             if (recepcionContent) recepcionContent.classList.add('hidden');
             if (cascosContent) cascosContent.classList.add('hidden');
+            if (embarquesContent) embarquesContent.classList.add('hidden');
 
-            if (subTab === 'escaner') {
+            if (subTab === 'embarques') {
+                if (embarquesContent) embarquesContent.classList.remove('hidden');
+                if (btnEmbarques) btnEmbarques.className = tabActivo;
+                if (sideEmbarques) sideEmbarques.className = "sidebar-item w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-400 bg-slate-800 transition cursor-pointer";
+                if (typeof inicializarModuloEmbarques === 'function') {
+                    inicializarModuloEmbarques();
+                }
+            } else if (subTab === 'escaner') {
                 if (escanerContent) escanerContent.classList.remove('hidden');
                 if (btnEscaner) btnEscaner.className = tabActivo;
                 if (sideEscaner) sideEscaner.className = "sidebar-item w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-400 bg-slate-800 transition cursor-pointer";

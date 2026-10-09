@@ -121,7 +121,11 @@ def conectar_sqlite():
     return sqlite3.connect(SQLITE_DB)
 
 def get_connection_string(dsn=None):
-    target = dsn or get_current_dsn()
+    target = str(dsn or get_current_dsn() or "BATTERY CENTER").strip()
+    if target.upper() in ('BC', 'BATTERY', 'BATTERY CENTER'):
+        target = 'BATTERY CENTER'
+    elif target.upper() in ('RT', 'BASESRTT'):
+        target = 'RT'
     
     # 1. Buscar en la configuración de empresas
     try:
@@ -142,7 +146,10 @@ def get_connection_string(dsn=None):
         return conn_string_microsip(archivo=archivo)
 
     # Conexión directa por DSN si no se especificó archivo
-    return conn_string_microsip(dsn=target)
+    try:
+        return conn_string_microsip(dsn=target)
+    except Exception:
+        return conn_string_microsip(dsn="basesmp")
 
 def conectar_db(dsn=None):
     conn = pyodbc.connect(get_connection_string(dsn), timeout=10)

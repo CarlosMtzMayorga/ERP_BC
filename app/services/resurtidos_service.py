@@ -569,7 +569,11 @@ def calcular_planeacion_resurtidos(params):
         inv_ced = int(round(stock_map.get((aid, cedis_id), 0.0)))
 
         faltante = max(0, p15d - inv_suc)
-        disp_cedis = max(0, inv_ced - 1) if reservar_minimo_cedis else inv_ced
+        # Artículos con existencia <= 1 en CEDIS no se sugieren a surtir (deben ser >= 2)
+        if inv_ced <= 1:
+            disp_cedis = 0
+        else:
+            disp_cedis = max(0, inv_ced - 1) if reservar_minimo_cedis else inv_ced
         surtir = min(faltante, disp_cedis)
 
         filas.append({
@@ -608,10 +612,10 @@ def calcular_planeacion_resurtidos(params):
         eq = row['equivalencia']
         return row['is_sf'] or not eq or equiv_counts[eq] == 1
 
-    # Regla 1: Mínimo por clasificación en ceros
+    # Regla 1: Mínimo por clasificación en ceros (solo si CEDIS tiene >= 2)
     for r in filas:
         if can_process_equiv(r) and r['clasif_almacen'] in selected_clasifs:
-            if r['surtir_cedis'] == 0 and r['stock_almacen'] == 0 and r['stock_cedis'] > 0:
+            if r['surtir_cedis'] == 0 and r['stock_almacen'] == 0 and r['stock_cedis'] >= 2:
                 sug = 2 if r['es_par'] == 'S' else 1
                 disp = max(0, r['stock_cedis'] - 1) if reservar_minimo_cedis else r['stock_cedis']
                 r['surtir_cedis'] = min(sug, disp)
@@ -622,7 +626,6 @@ def calcular_planeacion_resurtidos(params):
             r['surtir_cedis'] = 0
 
     # Regla 3: Grupos de equivalencias
-    # Regla: Si CEDIS tiene 1 pieza de equivalencia en varios artículos, enviar o sugerir el más alto en clasificación
     groups = defaultdict(list)
     for r in filas:
         if not r['is_sf'] and r['equivalencia']:
@@ -634,119 +637,51 @@ def calcular_planeacion_resurtidos(params):
         if len(rows_grp) <= 1:
             continue
         eligible = [r for r in rows_grp if r['clasif_almacen'] in selected_clasifs]
-        req_supply = sum(r['surtir_cedis'] for r in eligible if r['surtir_cedis'] > 0)
-        has_dest_inv = any(r['stock_almacen'] > 0 for r in eligible)
-
         for r in rows_grp:
             r['surtir_cedis'] = 0
-
-        if not eligible or has_dest_inv:
+        if not eligible:
             continue
-
-        base_req = max(1, req_supply)
-
-        # Candidatos con existencia en CEDIS (incluso si tienen solo 1 pieza)
-        candidates = [r for r in eligible if r['stock_cedis'] >= 1]
-        if not candidates:
-            # Si ninguno de los elegibles tiene en CEDIS, considerar los demás del grupo con existencia
-            candidates = [r for r in rows_grp if r['stock_cedis'] >= 1]
-            if not candidates:
-                continue
-
-        # Ordenar priorizando LA CLASIFICACIÓN MÁS ALTA (A > B > C > D...), luego más stock en CEDIS
-        candidates.sort(key=lambda x: (
-            clasif_order.get(x['clasif_almacen'], 99),
-            -x['stock_cedis'],
-            -x['venta_piezas']
-        ))
-        sel = candidates[0]
-        sel['badge_as'] = True
-
-        if sel['stock_cedis'] == 1:
-            # Si CEDIS tiene 1 pieza, enviar/sugerir esa pieza al de clasificación más alta
-            sel['surtir_cedis'] = 1
-        else:
-            disp = max(1, sel['stock_cedis'] - 1 if reservar_minimo_cedis else sel['stock_cedis'])
-            sel['surtir_cedis'] = min(base_req, disp)
-
-    # Regla 4: Limpiar surtido con CEDIS en 0
-    for r in filas:
-        if r['stock_cedis'] <= 0 and r['surtir_cedis'] != 0:
-            r['surtir_cedis'] = 0
-
-    # Regla 5: Reserva mínima de CEDIS
-    for r in filas:
-        if r['surtir_cedis'] > 0:
-            if r.get('badge_as') and r['stock_cedis'] == 1:
-                # Excepción: Artículo sugerido por equivalencia con 1 pieza en CEDIS se mantiene en 1
-                r['surtir_cedis'] = 1
-                continue
-            faltante = max(1, r['promedio_inv'] - r['stock_almacen']) if r.get('badge_as') else max(0, r['promedio_inv'] - r['stock_almacen'])
-            disp = max(0, r['stock_cedis'] - 1) if reservar_minimo_cedis else r['stock_cedis']
-            max_s = min(r['surtir_cedis'], disp) if not r.get('badge_as') else min(r['surtir_cedis'], max(1, disp))
-            if r['surtir_cedis'] > max_s:
-                r['surtir_cedis'] = max_s
-
-    # Regla 6: Forzar anulación si destino ya cuenta con existencias en equivalentes
-    for eq, rows_grp in groups.items():
-        if len(rows_grp) <= 1:
+        if any(r["stock_almacen"] > 0 for r in eligible):
             continue
-        if any(r['stock_almacen'] > 0 for r in rows_grp):
-            for r in rows_grp:
-                r['surtir_cedis'] = 0
-
-    # Regla 7: Fallback de equivalentes en ceros
-    for eq, rows_grp in groups.items():
-        if len(rows_grp) < 2:
-            continue
-        all_surt_zero = all(r['surtir_cedis'] == 0 for r in rows_grp)
-        has_dest_inv = any(r['stock_almacen'] > 0 for r in rows_grp)
-        has_sel = any(r['clasif_almacen'] in selected_clasifs for r in rows_grp)
-        if not all_surt_zero or has_dest_inv or not has_sel:
-            continue
-
-        candidates = [r for r in rows_grp if not r['is_sf'] and r['stock_cedis'] >= 1]
+        # Candidatos deben tener existencia >= 2 en CEDIS
+        candidates = [r for r in eligible if r['stock_cedis'] >= 2]
         if not candidates:
             continue
-        # Ordenar por clasificación más alta, luego existencias en CEDIS
-        candidates.sort(key=lambda x: (
-            clasif_order.get(x['clasif_almacen'], 99),
-            -x['stock_cedis'],
-            -x['venta_piezas']
-        ))
+        candidates.sort(key=lambda x: (clasif_order.get(x["clasif_almacen"], 99), -x["stock_cedis"], -x["venta_piezas"]))
         sel = candidates[0]
-        sel['badge_as'] = True
+        if sel["stock_cedis"] < 2:
+            continue
+        sel["badge_as"] = True
+        disp = max(1, sel["stock_cedis"] - 1 if reservar_minimo_cedis else sel["stock_cedis"])
+        sel["surtir_cedis"] = min(1, disp)
 
-        if sel['stock_cedis'] == 1:
-            sel['surtir_cedis'] = 1
-        else:
-            base_nec = 2 if sel['es_par'] == 'S' else 1
-            avail = max(1, sel['stock_cedis'] - 1 if reservar_minimo_cedis else sel['stock_cedis'])
-            sel['surtir_cedis'] = min(base_nec, avail)
-
-    # Regla 8: Sugerencia por clasificación para líneas maestras sin filtrar (SF)
+    # Regla 8: Sugerencia por clasificación para líneas maestras sin filtrar (SF) (solo si CEDIS tiene >= 2)
     for r in filas:
         if not r['is_sf'] or r['clasif_almacen'] not in selected_clasifs:
             continue
         base_nec = 2 if r['es_par'] == 'S' else 1
         dest_gap = max(0, base_nec - r['stock_almacen'])
-        if dest_gap > 0 and r['stock_cedis'] >= 1:
-            avail = 1 if r['stock_cedis'] == 1 else max(1, r['stock_cedis'] - 1 if reservar_minimo_cedis else r['stock_cedis'])
+        if dest_gap > 0 and r['stock_cedis'] >= 2:
+            avail = max(1, r['stock_cedis'] - 1 if reservar_minimo_cedis else r['stock_cedis'])
             sug_sf = min(dest_gap, avail)
             if sug_sf > r['surtir_cedis']:
                 r['surtir_cedis'] = sug_sf
 
     # Regla 9: Cálculo simultáneo de Cantidad a Surtir (necesidad real) y Cantidad a Surtir Sugerida (por múltiplos)
     for r in filas:
+        # Artículos con existencia <= 1 en CEDIS jamás se sugieren a surtir (solo >= 2)
+        if r.get('stock_cedis', 0) <= 1:
+            r['surtir_cedis'] = 0
+            r['cantidad_surtir'] = 0
+            r['cantidad_sugerida'] = 0
+            r['badge_as'] = False
+            continue
+
         cant_necesaria = max(0, int(r.get('surtir_cedis', 0)))
         r['cantidad_surtir'] = cant_necesaria
 
         if cant_necesaria <= 0:
             r['cantidad_sugerida'] = 0
-            continue
-
-        if r.get('badge_as') and r['stock_cedis'] == 1:
-            r['cantidad_sugerida'] = 1
             continue
 
         mult = max(1, int(r.get('multiplo') or 1))
@@ -771,6 +706,15 @@ def calcular_planeacion_resurtidos(params):
 
         # surtir_cedis refleja la cantidad sugerida por múltiplos si respetar_multiplos está activo
         r['surtir_cedis'] = r['cantidad_sugerida'] if respetar_multiplos else r['cantidad_surtir']
+
+    # ================= REGLA ESTRICTA FINAL: EXISTENCIA CEDIS >= 2 =================
+    # Garantía absoluta: ningún artículo con existencia en CEDIS <= 1 puede tener sugerencia a surtir
+    for r in filas:
+        if r.get('stock_cedis', 0) <= 1:
+            r['surtir_cedis'] = 0
+            r['cantidad_surtir'] = 0
+            r['cantidad_sugerida'] = 0
+            r['badge_as'] = False
 
     # ================= TOTALES Y ORDENAMIENTO =================
     conteo_clasif = {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "N": 0}

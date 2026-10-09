@@ -80,8 +80,9 @@
         // Jerarquía de módulos -> submódulos (actualizable dinámicamente)
         let MAPA_SUBMODULOS = {
             ventas: ['ventas_pv', 'ventas_tickets', 'vendedores_comisiones'],
-            almacen: ['almacen_traspasos', 'almacen_stock', 'almacen_recepcion', 'almacen_cascos'],
-            compras: ['modulo1', 'modulo2', 'modulo3', 'modulo4', 'resurtidos'],
+            almacen: ['almacen_traspasos', 'almacen_stock', 'almacen_recepcion', 'almacen_cascos', 'almacen_embarques'],
+            compras: ['modulo1', 'modulo2', 'modulo3', 'modulo4', 'resurtidos', 'compras_solicitudes'],
+            sucursales: ['sucursales_recepcion'],
             configuracion: ['bot_whatsapp', 'config_usuarios', 'config_empresas', 'config_modulos', 'config_comisiones']
         };
         let PADRE_DE = {};
@@ -132,26 +133,60 @@
         }
 
         function obtenerPrimerModuloPermitido() {
-            const orden = ['dashboard', 'ventas', 'almacen', 'resurtidos', 'modulo1', 'compras', 'modulo2', 'modulo3', 'modulo4', 'sucursales', 'administracion', 'configuracion'];
-            for (const m of orden) {
-                if (!tienePermiso(m)) continue;
-                if (m === 'ventas') {
-                    if (tienePermiso('puntoventa')) return 'puntoventa';
-                    if (tienePermiso('ventas_tickets')) return 'ventas_tickets';
-                    if (tienePermiso('vendedores_comisiones')) return 'vendedores_comisiones';
-                    if (tienePermiso('bot_whatsapp') && PADRE_DE['bot_whatsapp'] === 'ventas') return 'bot_whatsapp';
-                    return 'puntoventa';
-                }
-                if (m === 'compras') {
-                    const ordenCompras = ['modulo1', 'modulo2', 'modulo3', 'modulo4', 'resurtidos', 'compras_solicitudes'];
-                    return ordenCompras.find(s => tienePermiso(s)) || 'compras';
-                }
-                if (m === 'configuracion') {
-                    return primerSubPermitido('configuracion') || 'config_usuarios';
-                }
-                return m;
+            if (!currentUser) return 'dashboard';
+            const permisos = permisosDe(currentUser);
+            const esAdmin = currentUser.rol === 'ADMIN' || permisos.includes('*');
+
+            // 1. Si es Administrador o tiene permisos a todo o tiene dashboard explícito -> Inicio
+            if (esAdmin || permisos.includes('dashboard')) {
+                return 'dashboard';
             }
-            return null;
+
+            // 2. Si es vendedor o sucursal de ventas -> Punto de Venta
+            if (currentUser.rol === 'VENDEDOR_SUCURSAL' || tienePermiso('puntoventa') || tienePermiso('ventas_pv') || tienePermiso('ventas')) {
+                if (tienePermiso('puntoventa') || tienePermiso('ventas_pv')) return 'puntoventa';
+                if (tienePermiso('ventas_tickets')) return 'ventas_tickets';
+                if (tienePermiso('vendedores_comisiones')) return 'vendedores_comisiones';
+                return 'puntoventa';
+            }
+
+            // 3. Si es usuario de compras -> Compras
+            if (tienePermiso('compras') || tienePermiso('modulo1') || tienePermiso('resurtidos') || tienePermiso('modulo2') || tienePermiso('modulo3') || tienePermiso('modulo4')) {
+                if (tienePermiso('compras')) return 'compras';
+                const ordenCompras = ['modulo1', 'resurtidos', 'modulo2', 'modulo3', 'modulo4', 'compras_solicitudes'];
+                return ordenCompras.find(s => tienePermiso(s)) || 'compras';
+            }
+
+            // 4. Si es usuario de almacén -> Almacén
+            if (tienePermiso('almacen') || tienePermiso('almacen_traspasos') || tienePermiso('almacen_stock') || tienePermiso('almacen_recepcion') || tienePermiso('almacen_embarques')) {
+                const ordenAlm = ['almacen_traspasos', 'almacen_stock', 'almacen_recepcion', 'almacen_embarques', 'almacen_cascos'];
+                return ordenAlm.find(s => tienePermiso(s)) || 'almacen_traspasos';
+            }
+
+            // 5. Si tiene sucursales (recepción en tienda) -> Recepción de Embarques
+            if (tienePermiso('sucursales') || tienePermiso('sucursales_recepcion')) {
+                return 'sucursales_recepcion';
+            }
+
+            // 6. Administración
+            if (tienePermiso('administracion')) return 'administracion';
+
+            // 7. Configuración
+            if (tienePermiso('configuracion') || tienePermiso('config_usuarios')) {
+                return primerSubPermitido('configuracion') || 'config_usuarios';
+            }
+
+            // Fallback genérico por orden
+            const orden = ['dashboard', 'ventas', 'compras', 'almacen', 'sucursales', 'administracion', 'configuracion'];
+            for (const m of orden) {
+                if (tienePermiso(m)) {
+                    if (MAPA_SUBMODULOS[m]) {
+                        return primerSubPermitido(m) || m;
+                    }
+                    return m;
+                }
+            }
+            return 'dashboard';
         }
 
         function aplicarPermisologia(userData) {
@@ -161,7 +196,14 @@
             const sub = (id) => esAdmin || tieneSub(permisos, id);
             const mostrar = (ids, visible) => ids.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = visible ? '' : 'none';
+                if (el) {
+                    el.style.display = visible ? '' : 'none';
+                    if (visible) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
             });
 
             // Submódulos -> elementos de UI que controlan
@@ -175,11 +217,14 @@
                 almacen_stock: ['sidebarItemAlmCatalogo', 'tabSubAlmCatalogo'],
                 almacen_recepcion: ['sidebarItemAlmRecepcion', 'tabSubAlmRecepcion'],
                 almacen_cascos: ['sidebarItemAlmCascos', 'tabSubAlmCascos'],
+                almacen_embarques: ['sidebarItemAlmEmbarques', 'tabSubAlmEmbarques'],
                 modulo1: ['sidebarItemM1', 'cardLaunchpadM1'],
                 modulo2: ['sidebarItemM2', 'cardLaunchpadM2'],
                 modulo3: ['sidebarItemM3', 'cardLaunchpadM3'],
                 modulo4: ['sidebarItemM4', 'cardLaunchpadM4'],
                 resurtidos: ['sidebarItemResurtidos', 'cardLaunchpadResurtidos'],
+                compras_solicitudes: ['sidebarItemComprasSolicitudes', 'cardLaunchpadSolicitudesTraspasos'],
+                sucursales_recepcion: ['sidebarItemSucRecepcion', 'tabSubSucRecepcion'],
                 config_usuarios: ['sidebarItemConfigUsuarios'],
                 config_empresas: ['sidebarItemConfigEmpresas'],
                 config_modulos: ['sidebarItemConfigModulos'],
@@ -192,6 +237,7 @@
                 ventas: 'sidebarItemVentas', 
                 almacen: 'sidebarItemAlmacen', 
                 compras: 'sidebarItemCompras',
+                sucursales: 'sidebarItemSucursales',
                 configuracion: 'sidebarItemConfiguracion'
             };
             Object.keys(UI_MOD).forEach(m => {
@@ -201,7 +247,6 @@
 
             // Módulos directos
             mostrar(['sidebarItemDashboard'], esAdmin || permisos.includes('dashboard'));
-            mostrar(['sidebarItemSucursales'], esAdmin || permisos.includes('sucursales'));
             mostrar(['sidebarItemAdministracion'], esAdmin || permisos.includes('administracion') || permisos.includes('admin'));
 
             // Respetar visibilidad desactivada en el gestor de menús por el admin
@@ -241,21 +286,29 @@
             document.getElementById('userAvatar').textContent = inicial;
             document.getElementById('userBadgeName').textContent = userData.nombre || userData.usuario;
             
+            // Garantizar que todos los menús desplegables comiencen cerrados
+            abrirAcordeonSubmenu('none');
+
             if (!menuModulosCache || menuModulosCache.length === 0) {
                 await cargarEstructuraMenuGlobal();
             } else {
                 aplicarEstructuraMenuEnSidebar(menuModulosCache);
             }
             aplicarPermisologia(userData);
+
+            // Determinar módulo inicial según permisos y rol
+            const primerTab = obtenerPrimerModuloPermitido() || 'dashboard';
+            currentActiveTabId = primerTab;
+
+            // Activar automáticamente el módulo correspondiente de inmediato
+            activarTab(primerTab);
+            abrirAcordeonSubmenu('none');
+
             cargarEmpresas();
 
             if (typeof pvCargarSucursalYVendedor === 'function') {
                 pvCargarSucursalYVendedor();
             }
-
-            // Activar automáticamente el primer módulo permitido
-            const primerTab = obtenerPrimerModuloPermitido();
-            if (primerTab) activarTab(primerTab);
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -328,7 +381,7 @@
         });
 
         // ================= CONTROL DE SIDEBAR / NAVEGACIÓN Y ACORDEÓN =================
-        let currentActiveTabId = 'modulo1';
+        let currentActiveTabId = 'dashboard';
 
         function posicionarPanelDentroVentana(panel) {
             if (!panel) return;
@@ -347,6 +400,7 @@
                 ventas: { sub: document.getElementById('sidebarSubmenuVentas'), chev: document.getElementById('chevronVentas') },
                 almacen: { sub: document.getElementById('sidebarSubmenuAlmacen'), chev: document.getElementById('chevronAlmacen') },
                 compras: { sub: document.getElementById('sidebarSubmenuCompras'), chev: document.getElementById('chevronCompras') },
+                sucursales: { sub: document.getElementById('sidebarSubmenuSucursales'), chev: document.getElementById('chevronSucursales') },
                 configuracion: { sub: document.getElementById('sidebarSubmenuConfiguracion'), chev: document.getElementById('chevronConfiguracion') },
             };
 
@@ -370,7 +424,26 @@
                     posicionarPanelDentroVentana(item.sub);
                 }
             });
+
+            // Si es 'none', asegurar que ningún acordeón en el DOM quede abierto
+            if (moduloPadre === 'none' || !moduloPadre) {
+                document.querySelectorAll('.submenu-accordion').forEach(el => {
+                    el.classList.add('closed');
+                    el.classList.remove('open');
+                });
+                document.querySelectorAll('.rotate-180').forEach(el => {
+                    if (el.id && el.id.startsWith('chevron')) el.classList.remove('rotate-180');
+                });
+            }
         }
+
+        // Cerrar cualquier submenú desplegado al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            const esItemMenu = e.target.closest('#sidebarNavScroll') || e.target.closest('nav') || e.target.closest('.submenu-accordion') || e.target.closest('.nav-tab') || e.target.closest('.sidebar-item');
+            if (!esItemMenu) {
+                abrirAcordeonSubmenu('none');
+            }
+        });
 
         const tabBtnDash = document.getElementById('tabBtnDashboard');
         const tabBtnVentas = document.getElementById('tabBtnVentas');
@@ -382,6 +455,7 @@
         const tabBtnAlmCatalogo = document.getElementById('tabBtnAlmCatalogo');
         const tabBtnAlmRecepcion = document.getElementById('tabBtnAlmRecepcion');
         const tabBtnAlmCascos = document.getElementById('tabBtnAlmCascos');
+        const tabBtnAlmEmbarques = document.getElementById('tabBtnAlmEmbarques');
         const tabBtnComp = document.getElementById('tabBtnCompras');
         const tabBtnM1 = document.getElementById('tabBtnModulo1');
         const tabBtnM2 = document.getElementById('tabBtnModulo2');
@@ -390,6 +464,7 @@
         const tabBtnResurtidos = document.getElementById('tabBtnResurtidos');
         const tabBtnComprasSolicitudes = document.getElementById('tabBtnComprasSolicitudes');
         const tabBtnSuc = document.getElementById('tabBtnSucursales');
+        const tabBtnSucRecepcion = document.getElementById('tabBtnSucRecepcion');
         const tabBtnAdmin = document.getElementById('tabBtnAdministracion');
         const tabBtnConfig = document.getElementById('tabBtnConfiguracion');
         const tabBtnConfigUsuarios = document.getElementById('tabBtnConfigUsuarios');
@@ -433,6 +508,7 @@
             almacen_stock: 'Catálogo y Stock',
             almacen_recepcion: 'Recepción de Compra (OC)',
             almacen_cascos: 'Control de Cascos',
+            almacen_embarques: 'Embarques y Empaque',
             compras: 'Compras',
             resurtidos: 'Resurtidos',
             modulo1: 'Recepción de Compra',
@@ -441,6 +517,7 @@
             modulo4: 'Buscador de Artículos',
             compras_solicitudes: 'Validar Traspasos PV',
             sucursales: 'Sucursales',
+            sucursales_recepcion: 'Recepción de Embarques',
             administracion: 'Administración del Negocio',
             configuracion: 'Configuración',
             config_usuarios: 'Usuarios y Permisos',
@@ -483,6 +560,7 @@
             { id: 'almacen_stock', btn: tabBtnAlmCatalogo, mod: modAlm, isGroup: false, activeClass: 'text-white bg-slate-700 shadow-md shadow-slate-700/20' },
             { id: 'almacen_recepcion', btn: tabBtnAlmRecepcion, mod: modAlm, isGroup: false, activeClass: 'text-white bg-emerald-600 shadow-md shadow-emerald-600/20' },
             { id: 'almacen_cascos', btn: tabBtnAlmCascos, mod: modAlm, isGroup: false, activeClass: 'text-white bg-cyan-600 shadow-md shadow-cyan-600/20' },
+            { id: 'almacen_embarques', btn: tabBtnAlmEmbarques, mod: modAlm, isGroup: false, activeClass: 'text-white bg-blue-600 shadow-md shadow-blue-600/20' },
             { id: 'compras', btn: tabBtnComp, mod: modComp, isGroup: true, activeClass: 'text-white bg-red-600 shadow-md shadow-red-600/20' },
             { id: 'modulo1', btn: tabBtnM1, mod: mod1, isGroup: false, activeClass: 'text-white bg-red-600 shadow-md shadow-red-600/20' },
             { id: 'modulo2', btn: tabBtnM2, mod: mod2, isGroup: false, activeClass: 'text-white bg-emerald-600 shadow-md shadow-emerald-600/20' },
@@ -490,7 +568,8 @@
             { id: 'modulo4', btn: tabBtnM4, mod: mod4, isGroup: false, activeClass: 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' },
             { id: 'resurtidos', btn: tabBtnResurtidos, mod: modResurtidos, isGroup: false, activeClass: 'text-white bg-amber-600 shadow-md shadow-amber-600/20' },
             { id: 'compras_solicitudes', btn: tabBtnComprasSolicitudes, mod: modComprasSolicitudes, isGroup: false, activeClass: 'text-white bg-amber-600 shadow-md shadow-amber-600/20' },
-            { id: 'sucursales', btn: tabBtnSuc, mod: modSuc, isGroup: false, activeClass: 'text-white bg-blue-600 shadow-md shadow-blue-600/20' },
+            { id: 'sucursales', btn: tabBtnSuc, mod: modSuc, isGroup: true, activeClass: 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' },
+            { id: 'sucursales_recepcion', btn: tabBtnSucRecepcion, mod: modSuc, isGroup: false, activeClass: 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' },
             { id: 'administracion', btn: tabBtnAdmin, mod: modAdmin, isGroup: false, activeClass: 'text-white bg-slate-900 shadow-md shadow-slate-900/30' },
             { id: 'configuracion', btn: tabBtnConfig, mod: modConfig, isGroup: true, activeClass: 'text-white bg-purple-700 shadow-md shadow-purple-700/20' },
             { id: 'config_usuarios', btn: tabBtnConfigUsuarios, mod: modConfig, isGroup: false, activeClass: 'text-white bg-purple-700 shadow-md shadow-purple-700/20' },
@@ -513,8 +592,7 @@
             currentActiveTabId = tabId;
 
             // Gestión de acordeón de submenús dinámico
-            const padreAcordeon = PADRE_DE[tabId] || (MAPA_SUBMODULOS[tabId] ? tabId : 'none');
-            abrirAcordeonSubmenu(padreAcordeon);
+            abrirAcordeonSubmenu('none');
 
             // Ocultar primero todos los contenedores de módulos principales
             [modDash, modPV, modVentas, modVendedoresComisiones, modAlm, modComp, mod1, mod2, mod3, mod4, modResurtidos, modComprasSolicitudes, modSuc, modAdmin, modConfig, modBotWhatsapp, modCustom].forEach(m => {
@@ -612,10 +690,16 @@
                 if (typeof cambiarSubTabAlmacen === 'function') {
                     cambiarSubTabAlmacen('cascos');
                 }
+            } else if (tabId === 'almacen_embarques') {
+                if (typeof cambiarSubTabAlmacen === 'function') {
+                    cambiarSubTabAlmacen('embarques');
+                }
             } else if (tabId === 'compras') {
                 cargarComprasDashboard();
-            } else if (tabId === 'sucursales') {
-                cargarSucursales();
+            } else if (tabId === 'sucursales' || tabId === 'sucursales_recepcion') {
+                if (typeof cambiarSubTabSucursales === 'function') {
+                    cambiarSubTabSucursales('recepcion');
+                }
             } else if (tabId === 'administracion') {
                 if (typeof cargarModuloAdministracion === 'function') {
                     cargarModuloAdministracion();
@@ -653,11 +737,10 @@
             tabBtnVentas.addEventListener('click', () => {
                 const subV = document.getElementById('sidebarSubmenuVentas');
                 const isOpen = subV && subV.classList.contains('open');
-                const perteneceAVentas = currentActiveTabId === 'ventas' || PADRE_DE[currentActiveTabId] === 'ventas';
-                if (isOpen && perteneceAVentas) {
+                if (isOpen) {
                     abrirAcordeonSubmenu('none');
                 } else {
-                    activarTab(primerSubPermitido('ventas') || 'puntoventa');
+                    abrirAcordeonSubmenu('ventas');
                 }
             });
         }
@@ -671,11 +754,10 @@
             tabBtnConfig.addEventListener('click', () => {
                 const subConf = document.getElementById('sidebarSubmenuConfiguracion');
                 const isOpen = subConf && subConf.classList.contains('open');
-                const perteneceAConfig = currentActiveTabId === 'configuracion' || PADRE_DE[currentActiveTabId] === 'configuracion';
-                if (isOpen && perteneceAConfig) {
+                if (isOpen) {
                     abrirAcordeonSubmenu('none');
                 } else {
-                    activarTab(primerSubPermitido('configuracion') || 'config_usuarios');
+                    abrirAcordeonSubmenu('configuracion');
                 }
             });
         }
@@ -688,11 +770,10 @@
             tabBtnAlm.addEventListener('click', () => {
                 const subAlm = document.getElementById('sidebarSubmenuAlmacen');
                 const isOpen = subAlm && subAlm.classList.contains('open');
-                const perteneceAAlm = currentActiveTabId === 'almacen' || PADRE_DE[currentActiveTabId] === 'almacen';
-                if (isOpen && perteneceAAlm) {
+                if (isOpen) {
                     abrirAcordeonSubmenu('none');
                 } else {
-                    activarTab(primerSubPermitido('almacen') || 'almacen');
+                    abrirAcordeonSubmenu('almacen');
                 }
             });
         }
@@ -700,15 +781,15 @@
         if (tabBtnAlmCatalogo) tabBtnAlmCatalogo.addEventListener('click', () => activarTab('almacen_stock'));
         if (tabBtnAlmRecepcion) tabBtnAlmRecepcion.addEventListener('click', () => activarTab('almacen_recepcion'));
         if (tabBtnAlmCascos) tabBtnAlmCascos.addEventListener('click', () => activarTab('almacen_cascos'));
+        if (tabBtnAlmEmbarques) tabBtnAlmEmbarques.addEventListener('click', () => activarTab('almacen_embarques'));
         if (tabBtnComp) {
             tabBtnComp.addEventListener('click', () => {
                 const subComp = document.getElementById('sidebarSubmenuCompras');
                 const isOpen = subComp && subComp.classList.contains('open');
-                const perteneceAComp = currentActiveTabId === 'compras' || PADRE_DE[currentActiveTabId] === 'compras';
-                if (isOpen && perteneceAComp) {
+                if (isOpen) {
                     abrirAcordeonSubmenu('none');
                 } else {
-                    activarTab(primerSubPermitido('compras') || 'compras');
+                    abrirAcordeonSubmenu('compras');
                 }
             });
         }
@@ -718,7 +799,18 @@
         if (tabBtnM4) tabBtnM4.addEventListener('click', () => activarTab('modulo4'));
         if (tabBtnResurtidos) tabBtnResurtidos.addEventListener('click', () => activarTab('resurtidos'));
         if (tabBtnComprasSolicitudes) tabBtnComprasSolicitudes.addEventListener('click', () => activarTab('compras_solicitudes'));
-        if (tabBtnSuc) tabBtnSuc.addEventListener('click', () => activarTab('sucursales'));
+        if (tabBtnSuc) {
+            tabBtnSuc.addEventListener('click', () => {
+                const subSuc = document.getElementById('sidebarSubmenuSucursales');
+                const isOpen = subSuc && subSuc.classList.contains('open');
+                if (isOpen) {
+                    abrirAcordeonSubmenu('none');
+                } else {
+                    abrirAcordeonSubmenu('sucursales');
+                }
+            });
+        }
+        if (tabBtnSucRecepcion) tabBtnSucRecepcion.addEventListener('click', () => activarTab('sucursales_recepcion'));
 
 
 
@@ -1128,7 +1220,7 @@
                 ninguno: [],
                 vendedor: ['dashboard', 'ventas_pv', 'ventas_tickets', 'modulo4'],
                 almacen: ['dashboard', 'almacen_traspasos', 'almacen_stock', 'almacen_recepcion', 'modulo4'],
-                atencion: ['dashboard', 'bot_whatsapp', 'sucursales', 'modulo4']
+                atencion: ['dashboard', 'bot_whatsapp', 'sucursales_recepcion', 'modulo4']
             };
             cargarPermisosEnModal(PERFILES[perfil] || []);
         }
@@ -1547,6 +1639,8 @@
                 almacen_stock: 'sidebarItemAlmCatalogo',
                 almacen_recepcion: 'sidebarItemAlmRecepcion',
                 almacen_cascos: 'sidebarItemAlmCascos',
+                almacen_embarques: 'sidebarItemAlmEmbarques',
+                sucursales_recepcion: 'sidebarItemSucRecepcion',
                 resurtidos: 'sidebarItemResurtidos',
                 compras_solicitudes: 'sidebarItemComprasSolicitudes',
                 modulo1: 'sidebarItemM1',
@@ -1563,6 +1657,7 @@
                 ventas: 'sidebarSubmenuVentas',
                 almacen: 'sidebarSubmenuAlmacen',
                 compras: 'sidebarSubmenuCompras',
+                sucursales: 'sidebarSubmenuSucursales',
                 configuracion: 'sidebarSubmenuConfiguracion'
             };
 
@@ -1654,6 +1749,11 @@
 
             // 5. Actualizar módulos custom extra si existen
             actualizarSidebarCustom(menu);
+
+            // 6. Si el usuario ya está autenticado, re-aplicar sus permisos inmediatamente
+            if (currentUser) {
+                aplicarPermisologia(currentUser);
+            }
         }
 
         async function cargarEstructuraMenuGlobal() {
@@ -2513,7 +2613,9 @@
 
                 actualizarProgreso(80, 'Sincronizando vistas...', 'Recargando datos del módulo...');
                 // 5. Recargar la vista activa inmediatamente
-                activarTab(currentActiveTabId);
+                const tabARecargar = currentActiveTabId || (typeof obtenerPrimerModuloPermitido === 'function' ? obtenerPrimerModuloPermitido() : 'dashboard');
+                activarTab(tabARecargar);
+                abrirAcordeonSubmenu('none');
 
                 // 6. Si el módulo activo no es el dashboard, refrescar el dashboard en segundo plano
                 if (currentActiveTabId !== 'dashboard' && typeof cargarDashboard === 'function') {
@@ -2528,6 +2630,9 @@
                 ocultarProgreso();
                 renderizarEstado('error', 'Error al conectar');
                 mostrarAlerta('error', `Error al cambiar empresa: ${err.message}`);
+                const tabFallback = currentActiveTabId || (typeof obtenerPrimerModuloPermitido === 'function' ? obtenerPrimerModuloPermitido() : 'dashboard');
+                activarTab(tabFallback);
+                abrirAcordeonSubmenu('none');
             }
         }
 
