@@ -447,6 +447,41 @@ def crear_embarque():
         conn.close()
         return jsonify({"success": False, "error": str(e)}), 500
 
+@embarques_bp.route('/api/embarques/eliminar/<int:embarque_id>', methods=['POST', 'DELETE'])
+def eliminar_embarque(embarque_id):
+    """
+    Elimina un embarque en preparación o prueba y sus cajas/detalles asociados.
+    """
+    conn = conectar_sqlite()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT folio, estatus FROM embarques WHERE id = ?", (embarque_id,))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({"success": False, "error": "Embarque no encontrado"}), 404
+
+        folio_del = row[0]
+
+        # Borrar detalles de cajas, cajas, tracking y embarque
+        cur.execute("DELETE FROM embarque_caja_detalles WHERE caja_id IN (SELECT id FROM embarque_cajas WHERE embarque_id = ?)", (embarque_id,))
+        cur.execute("DELETE FROM embarque_cajas WHERE embarque_id = ?", (embarque_id,))
+        cur.execute("DELETE FROM embarque_tracking WHERE embarque_id = ?", (embarque_id,))
+        cur.execute("DELETE FROM embarques WHERE id = ?", (embarque_id,))
+
+        # Si ya no quedan embarques, resetear secuencia de SQLite
+        cur.execute("SELECT count(*) FROM embarques")
+        total_restantes = cur.fetchone()[0]
+        if total_restantes == 0:
+            cur.execute("DELETE FROM sqlite_sequence WHERE name IN ('embarques', 'embarque_cajas', 'embarque_caja_detalles', 'embarque_tracking')")
+
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "mensaje": f"Embarque #{folio_del} eliminado correctamente."})
+    except Exception as e:
+        conn.close()
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @embarques_bp.route('/api/embarques/cerrar-caja', methods=['POST'])
 def cerrar_caja():
     """

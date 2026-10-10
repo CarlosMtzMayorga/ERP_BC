@@ -352,6 +352,9 @@ async function cargarListadoEmbarques() {
                             <button type="button" onclick="continuarEmbarquePreparacion(${emb.id})" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-lg text-xs transition cursor-pointer shadow-xs">
                                 <span>⚡ Continuar Empaque</span>
                             </button>
+                            <button type="button" onclick="eliminarEmbarque(${emb.id}, '${emb.folio}')" title="Eliminar embarque" class="p-1.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 font-bold rounded-lg text-xs transition cursor-pointer">
+                                🗑️
+                            </button>
                         ` : ''}
                         <button type="button" onclick="verDetalleEmbarqueModal(${emb.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
                             Ver Cajas 👁️
@@ -1647,6 +1650,28 @@ async function continuarEmbarquePreparacion(embId) {
     } catch (e) {
         console.error("Error al continuar embarque:", e);
         mostrarAlerta('error', 'Error al reanudar empaque del embarque.');
+    }
+}
+
+// ================= ELIMINAR EMBARQUE =================
+async function eliminarEmbarque(embId, folio) {
+    if (!confirm(`¿Estás seguro de eliminar el embarque Folio #${folio}? Esta acción no se puede deshacer.`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/embarques/eliminar/${embId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            mostrarAlerta('success', data.mensaje || `Embarque #${folio} eliminado correctamente.`);
+            cargarDashboardEmbarques();
+            cargarListadoEmbarques();
+            cargarTraspasosPendientesEmbarque();
+        } else {
+            mostrarAlerta('error', data.error || 'No se pudo eliminar el embarque.');
+        }
+    } catch (e) {
+        mostrarAlerta('error', 'Error al comunicar con el servidor.');
     }
 }
 
