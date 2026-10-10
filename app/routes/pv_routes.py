@@ -289,6 +289,76 @@ def get_vehiculos_productos():
     except Exception as e:
         return jsonify({"success": False, "error": str(e), "productos": []}), 500
 
+def obtener_saldos_rt_por_claves(claves):
+    """Consulta rápida en RT de las existencias agrupadas por clave de artículo.
+    Retorna un diccionario {clave_mayuscula: stock_total}."""
+    if not claves:
+        return {}
+    res = defaultdict(float)
+    conn_rt = None
+    try:
+        conn_rt = conectar_db("RT")
+        cur_rt = conn_rt.cursor()
+        claves_unicas = list(set(c.strip().upper() for c in claves if c and c.strip()))
+        if claves_unicas:
+            placeholders = ",".join("?" for _ in claves_unicas)
+            cur_rt.execute(f"""
+                SELECT TRIM(ca.CLAVE_ARTICULO), COALESCE(SUM(s.ENTRADAS_UNIDADES - s.SALIDAS_UNIDADES), 0)
+                FROM CLAVES_ARTICULOS ca
+                JOIN SALDOS_IN s ON s.ARTICULO_ID = ca.ARTICULO_ID
+                WHERE UPPER(ca.CLAVE_ARTICULO) IN ({placeholders})
+                GROUP BY ca.CLAVE_ARTICULO
+            """, claves_unicas)
+            for r in cur_rt.fetchall():
+                if r[0]:
+                    res[str(r[0]).strip().upper()] = max(0.0, float(r[1] or 0))
+        cur_rt.close()
+        conn_rt.close()
+    except Exception as e_rt:
+        print("Aviso al consultar existencias en RT:", e_rt)
+        if conn_rt:
+            try: conn_rt.close()
+            except: pass
+    return res
+
+def obtener_almacenes_rt_por_clave(clave):
+    """Consulta existencias por almacén en RT para una clave de artículo.
+    Retorna lista de dicts: [{'almacen_id': ..., 'nombre': ..., 'piezas': ..., 'empresa': 'RT'}]"""
+    almacenes_rt = []
+    conn_rt = None
+    try:
+        conn_rt = conectar_db("RT")
+        cur_rt = conn_rt.cursor()
+        cur_rt.execute("""
+            SELECT 
+                a.ALMACEN_ID,
+                TRIM(a.NOMBRE) AS NOMBRE_ALMACEN,
+                COALESCE(SUM(s.ENTRADAS_UNIDADES - s.SALIDAS_UNIDADES), 0) AS EXISTENCIA
+            FROM ALMACENES a
+            JOIN SALDOS_IN s ON s.ALMACEN_ID = a.ALMACEN_ID
+            JOIN CLAVES_ARTICULOS ca ON ca.ARTICULO_ID = s.ARTICULO_ID
+            WHERE UPPER(ca.CLAVE_ARTICULO) = UPPER(TRIM(?))
+              AND a.NOMBRE NOT LIKE 'NO UTILIZAR%'
+            GROUP BY a.ALMACEN_ID, a.NOMBRE
+            HAVING COALESCE(SUM(s.ENTRADAS_UNIDADES - s.SALIDAS_UNIDADES), 0) > 0
+            ORDER BY EXISTENCIA DESC
+        """, (clave,))
+        for r in cur_rt.fetchall():
+            almacenes_rt.append({
+                "almacen_id": int(r[0]),
+                "nombre": str(r[1]).strip(),
+                "piezas": max(0, int(r[2] or 0)),
+                "empresa": "RT"
+            })
+        cur_rt.close()
+        conn_rt.close()
+    except Exception as e:
+        print("Aviso al consultar almacenes de RT:", e)
+        if conn_rt:
+            try: conn_rt.close()
+            except: pass
+    return almacenes_rt
+
 # ================= 3. BÚSQUEDA Y DETALLE DE ARTÍCULOS POS =================
 
 @pv_bp.route('/api/pv/articulos/sugerencias', methods=['GET'])
@@ -346,18 +416,44 @@ def sugerencias_articulos_pos():
         """, tuple(params))
 
         res = []
-        for r in cur.fetchall():
-            res.append({
-                "clave": str(r[0]).strip(),
-                "nombre": str(r[1]).strip(),
-                "equivalencia": str(r[2]).strip() if r[2] else "",
-                "articulo_id": int(r[3]),
-                "stock_local": float(r[4] or 0),
-                "precio": float(r[5] or 0)
-            })
+        rows = cur.fetchall()
+        art_ids = [int(r[3]) for r in rows if r[3]]
+
+        # Stock total en BC para estas sugerencias
+        stock_bc_map = defaultdict(float)
+        if art_ids:
+            ph_bc = ",".join("?" for _ in art_ids)
+            cur.execute(f"""
+                SELECT ARTICULO_ID, COALESCE(SUM(ENTRADAS_UNIDADES - SALIDAS_UNIDADES), 0)
+                FROM SALDOS_IN
+                WHERE ARTICULO_ID IN ({ph_bc})
+                GROUP BY ARTICULO_ID
+            """, art_ids)
+            for r_bc in cur.fetchall():
+                stock_bc_map[int(r_bc[0])] = max(0.0, float(r_bc[1] or 0))
 
         cur.close()
         conn.close()
+        conn = None
+
+        # Stock total en RT para estas claves
+        claves_list = [str(r[0]).strip() for r in rows if r[0]]
+        stock_rt_map = obtener_saldos_rt_por_claves(claves_list)
+
+        for r in rows:
+            art_id = int(r[3])
+            clave_art = str(r[0]).strip()
+            res.append({
+                "clave": clave_art,
+                "nombre": str(r[1]).strip(),
+                "equivalencia": str(r[2]).strip() if r[2] else "",
+                "articulo_id": art_id,
+                "stock_local": float(r[4] or 0),
+                "stock_bc": float(stock_bc_map.get(art_id, 0.0)),
+                "stock_rt": float(stock_rt_map.get(clave_art.upper(), 0.0)),
+                "precio": float(r[5] or 0)
+            })
+
         return jsonify(res)
     except Exception as e:
         if conn:
@@ -827,7 +923,8 @@ def detalle_articulo_pos(clave):
         """, (art_id,))
         
         existencias_almacenes = []
-        total_piezas = 0
+        almacenes_bc = []
+        stock_bc_total = 0
         stock_tu_almacen = 0
         stock_cedis = 0
         alm_id_num = int(almacen_id) if (almacen_id and str(almacen_id).isdigit()) else (int(session.get('sucursal_id')) if session.get('sucursal_id') else None)
@@ -836,25 +933,36 @@ def detalle_articulo_pos(clave):
             alm_id = int(r_alm[0])
             nom_alm = str(r_alm[1]).strip()
             pzas = max(0, int(r_alm[2] or 0))
-            total_piezas += pzas
+            stock_bc_total += pzas
 
             if alm_id_num and alm_id == alm_id_num:
                 stock_tu_almacen = pzas
             if alm_id == 620110 or 'CEDIS' in nom_alm.upper():
                 stock_cedis += pzas
 
-            existencias_almacenes.append({
+            item_alm = {
                 "almacen_id": alm_id,
                 "nombre": nom_alm,
                 "piezas": pzas,
+                "empresa": "BC",
                 "comprometidas": 1 if "CEDIS" in nom_alm or "AEROPUERTO" in nom_alm else 0
-            })
+            }
+            almacenes_bc.append(item_alm)
+            existencias_almacenes.append(item_alm)
 
-        # Equivalencias (hasta 6)
+        # Existencias en RT
+        almacenes_rt = obtener_almacenes_rt_por_clave(clave_art)
+        stock_rt_total = sum(a["piezas"] for a in almacenes_rt)
+        for a_rt in almacenes_rt:
+            existencias_almacenes.append(a_rt)
+
+        total_piezas = stock_bc_total + stock_rt_total
+
+        # Equivalencias (hasta 20)
         equivalencias = []
         if equiv_art:
             cur.execute("""
-                SELECT FIRST 6
+                SELECT FIRST 20
                     a.ARTICULO_ID,
                     TRIM(ca.CLAVE_ARTICULO) AS CLAVE,
                     TRIM(a.NOMBRE) AS NOMBRE,
@@ -871,7 +979,7 @@ def detalle_articulo_pos(clave):
 
             eq_rows = cur.fetchall()
             eq_ids = [int(r[0]) for r in eq_rows if r[0] is not None]
-            eq_stock_map = defaultdict(int)
+            eq_stock_bc_map = defaultdict(int)
             if eq_ids:
                 ph_eq = ",".join("?" for _ in eq_ids)
                 cur.execute(f"""
@@ -881,16 +989,24 @@ def detalle_articulo_pos(clave):
                     GROUP BY ARTICULO_ID
                 """, eq_ids)
                 for r_stk in cur.fetchall():
-                    eq_stock_map[int(r_stk[0])] = max(0, int(float(r_stk[1] or 0)))
+                    eq_stock_bc_map[int(r_stk[0])] = max(0, int(float(r_stk[1] or 0)))
+
+            eq_claves = [str(r[1]).strip() for r in eq_rows if r[1]]
+            eq_stock_rt_map = obtener_saldos_rt_por_claves(eq_claves)
 
             for r_eq in eq_rows:
                 eq_id = int(r_eq[0])
+                eq_clv = str(r_eq[1]).strip()
+                stk_bc_eq = eq_stock_bc_map.get(eq_id, 0)
+                stk_rt_eq = int(eq_stock_rt_map.get(eq_clv.upper(), 0))
                 equivalencias.append({
                     "articulo_id": eq_id,
-                    "clave": str(r_eq[1]).strip(),
+                    "clave": eq_clv,
                     "nombre": str(r_eq[2]).strip(),
                     "precio": float(r_eq[3] or 0),
-                    "stock": eq_stock_map[eq_id]
+                    "stock_bc": stk_bc_eq,
+                    "stock_rt": stk_rt_eq,
+                    "stock": stk_bc_eq + stk_rt_eq
                 })
 
         # Verificar foto
@@ -916,9 +1032,13 @@ def detalle_articulo_pos(clave):
                 "tiene_foto": tiene_foto,
                 "foto_url": f"/api/articulos/foto/{art_id}" if tiene_foto else None,
                 "total_piezas": total_piezas,
+                "stock_bc_total": stock_bc_total,
+                "stock_rt_total": stock_rt_total,
                 "stock_tu_almacen": stock_tu_almacen,
                 "stock_cedis": stock_cedis,
                 "existencias_almacenes": existencias_almacenes,
+                "almacenes_bc": almacenes_bc,
+                "almacenes_rt": almacenes_rt,
                 "equivalencias": equivalencias
             }
         })

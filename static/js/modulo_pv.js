@@ -622,10 +622,17 @@ function pvRenderizarSugerenciasArticulos(query) {
         const nomHigh = pvResaltarCoincidencia(art.nombre, query);
         const eqBadge = art.equivalencia ? `<span class="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">Eq: ${art.equivalencia}</span>` : '';
 
-        const stockLocal = Number(art.stock_local || 0);
-        const stockBadge = stockLocal > 0
-            ? `<span class="inline-flex items-center gap-1 font-black text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">✅ ${stockLocal} pzas</span>`
-            : `<span class="inline-flex items-center gap-1 font-bold text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">Sin stock local</span>`;
+        const stockBc = Number(art.stock_bc || 0);
+        const stockRt = Number(art.stock_rt || 0);
+
+        // Requisito visual: Existencias de BC en rojo y RT en amarillo
+        const badgeBc = stockBc > 0
+            ? `<span class="inline-flex items-center gap-1 font-black text-[10.5px] text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 shadow-2xs">🔴 BC: ${stockBc} pzas</span>`
+            : `<span class="inline-flex items-center gap-1 font-semibold text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">BC: 0</span>`;
+
+        const badgeRt = stockRt > 0
+            ? `<span class="inline-flex items-center gap-1 font-black text-[10.5px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-300 shadow-2xs">🟡 RT: ${stockRt} pzas</span>`
+            : `<span class="inline-flex items-center gap-1 font-semibold text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">RT: 0</span>`;
 
         const precioHtml = art.precio > 0
             ? `<span class="font-black text-slate-900 text-xs">${formatearMoneda(art.precio)}</span>`
@@ -639,9 +646,12 @@ function pvRenderizarSugerenciasArticulos(query) {
                 </div>
                 <div class="text-[11px] text-slate-600 truncate mt-0.5 font-medium">${nomHigh}</div>
             </div>
-            <div class="text-right flex flex-col items-end gap-0.5 shrink-0">
+            <div class="text-right flex flex-col items-end gap-1 shrink-0">
                 ${precioHtml}
-                ${stockBadge}
+                <div class="flex items-center gap-1 flex-wrap justify-end">
+                    ${badgeBc}
+                    ${badgeRt}
+                </div>
             </div>
         `;
 
@@ -674,7 +684,8 @@ function pvSeleccionarSugerenciaArticulo(clave) {
         if (btnClear) btnClear.classList.remove('hidden');
     }
     pvCerrarDropdownSugerenciasArticulo();
-    pvEjecutarBusquedaArticulos(clave);
+    // Cargar directamente la ficha de mostrador de 3 columnas solicitada
+    pvCargarArticuloMostrador(clave);
 }
 
 function pvCerrarDropdownSugerenciasArticulo() {
@@ -740,10 +751,14 @@ async function pvEjecutarBusquedaArticulos(terminoForzado) {
 
         if (data.success && data.articulos) {
             PV_STATE.articulosEncontrados = data.articulos;
-            pvRenderizarGridArticulos(data.articulos);
-
             const cEl = document.getElementById('pvConteoArticulosEncontrados');
             if (cEl) cEl.textContent = data.articulos.length;
+
+            if (data.articulos.length === 1) {
+                pvCargarArticuloMostrador(data.articulos[0].clave);
+            } else {
+                pvRenderizarGridArticulos(data.articulos);
+            }
         } else {
             pvRenderizarGridArticulos([]);
             const cEl = document.getElementById('pvConteoArticulosEncontrados');
@@ -853,7 +868,7 @@ function pvRenderizarGridArticulos(articulos) {
                     <!-- Fila Superior: Foto (izquierda) + Clave, Marca, Detalle y Nombre (derecha) -->
                     <div class="flex items-start gap-2.5">
                         <!-- Miniatura de Foto / Icono (Compacta y nítida) -->
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative cursor-pointer" onclick="pvAbrirModalDetalle('${art.clave}')" title="Ver foto y existencias ampliadas">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative cursor-pointer" onclick="pvCargarArticuloMostrador('${art.clave}')" title="Ver ficha completa de mostrador y existencias BC/RT">
                             ${fotoHtml}
                         </div>
 
@@ -861,10 +876,10 @@ function pvRenderizarGridArticulos(articulos) {
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between gap-1">
                                 <div class="flex items-center gap-1 min-w-0">
-                                    <span class="text-xs sm:text-sm font-black text-slate-900 group-hover:text-indigo-600 transition tracking-tight truncate">${art.clave}</span>
+                                    <span class="text-xs sm:text-sm font-black text-slate-900 group-hover:text-indigo-600 transition tracking-tight truncate cursor-pointer" onclick="pvCargarArticuloMostrador('${art.clave}')">${art.clave}</span>
                                     <span class="text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">${art.marca || 'GEN'}</span>
                                 </div>
-                                <button type="button" onclick="pvAbrirModalDetalle('${art.clave}')" title="Ver existencias multi-almacén y equivalencias"
+                                <button type="button" onclick="pvCargarArticuloMostrador('${art.clave}')" title="Ver ficha completa de mostrador y existencias BC/RT"
                                         class="h-7 w-7 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-500 flex items-center justify-center text-[10px] transition cursor-pointer active:scale-95 shrink-0">
                                     🔍
                                 </button>
@@ -931,6 +946,329 @@ function pvRenderizarGridArticulos(articulos) {
             </div>
         `;
     }).join('');
+}
+
+// ================= MOSTRADOR DE 3 COLUMNAS (Screenshot de Referencia) =================
+
+async function pvCargarArticuloMostrador(clave) {
+    if (!clave) return;
+    const grid = document.getElementById('pvGridArticulos');
+    if (grid) {
+        grid.innerHTML = `
+            <div class="col-span-full bg-white p-12 text-center rounded-3xl border border-slate-200 shadow-sm animate-pulse">
+                <div class="text-3xl mb-2 animate-bounce">📦</div>
+                <div class="text-base font-black text-slate-900 tracking-tight">Cargando mostrador de ${clave}...</div>
+                <div class="text-xs text-slate-500 mt-1 flex items-center justify-center gap-2">
+                    <span class="text-red-600 font-bold">🔴 Consultando BC Refaccionarias</span>
+                    <span>&bull;</span>
+                    <span class="text-amber-600 font-bold">🟡 Consultando RT Suspensiones</span>
+                </div>
+            </div>
+        `;
+    }
+
+    try {
+        const queryParams = new URLSearchParams();
+        if (PV_STATE.sucursalActualId) queryParams.append('almacen_id', PV_STATE.sucursalActualId);
+        const res = await fetch(`/api/pv/articulos/detalle/${encodeURIComponent(clave)}?${queryParams.toString()}`);
+        const data = await res.json();
+        if (data.success && data.articulo) {
+            PV_STATE.articuloMostradorActivo = data.articulo;
+            pvRenderizarFichaMostrador(data.articulo);
+            const cEl = document.getElementById('pvConteoArticulosEncontrados');
+            if (cEl) cEl.textContent = '1';
+        } else {
+            if (grid) {
+                grid.innerHTML = `<div class="col-span-full p-8 text-center text-rose-600 font-bold text-xs bg-white rounded-2xl border border-rose-200">No fue posible obtener el detalle de ${clave}.</div>`;
+            }
+        }
+    } catch (e) {
+        console.error("Error al cargar artículo en mostrador:", e);
+        if (grid) {
+            grid.innerHTML = `<div class="col-span-full p-8 text-center text-rose-600 font-bold text-xs bg-white rounded-2xl border border-rose-200">Error de conexión al cargar la refacción.</div>`;
+        }
+    }
+}
+
+function pvRenderizarFichaMostrador(art) {
+    const grid = document.getElementById('pvGridArticulos');
+    if (!grid) return;
+
+    // Detectar icono según familia si no tiene foto
+    const nomUp = art.nombre.toUpperCase();
+    const esBateria = art.clave.startsWith('G-') || art.clave.startsWith('CH-') || nomUp.includes('ACUMULADOR');
+    const esAmort = nomUp.includes('AMORTIGUADOR');
+    const esFiltro = art.clave.startsWith('GP-') || art.clave.startsWith('GA-') || nomUp.includes('FILTRO');
+    const esBujia = nomUp.includes('BUJIA') || nomUp.includes('BUJÍA');
+    const esFreno = nomUp.includes('BALATA') || nomUp.includes('FRENO');
+    const iconSvg = esBateria ? '🔋' : esAmort ? '🔩' : esFiltro ? '🛢️' : esBujia ? '⚡' : esFreno ? '🛑' : '⚙️';
+
+    const tieneFoto = !!(art.tiene_foto && art.foto_url);
+    const fotoHtml = tieneFoto
+        ? `<img src="${art.foto_url}" alt="${art.clave}" class="max-h-full max-w-full object-contain">`
+        : `<div class="text-center text-slate-300 font-black tracking-widest text-xs uppercase flex flex-col items-center gap-1"><span class="text-3xl">${iconSvg}</span><span>IMAGEN</span></div>`;
+
+    // Tabla asignada del cliente
+    const tablaAsig = PV_STATE.clienteActual?.tabla_asignada || 'Talleres y Flotillas';
+
+    // Barra de navegación si venía de una búsqueda amplia
+    const barraVolver = (PV_STATE.articulosEncontrados && PV_STATE.articulosEncontrados.length > 1)
+        ? `
+            <div class="mb-3 flex items-center justify-between">
+                <button type="button" onclick="pvVolverAGridResultados()"
+                        class="text-xs font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 active:scale-95 px-3 py-1.5 rounded-xl border border-indigo-200 transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                    <span>←</span>
+                    <span>Volver a las ${PV_STATE.articulosEncontrados.length} refacciones encontradas</span>
+                </button>
+                <span class="text-[10px] text-slate-400 font-semibold">Mostrador de Refacción</span>
+            </div>
+        `
+        : '';
+
+    // Renderizar almacenes con diferenciación visual exacta de colores: BC en ROJO y RT en AMARILLO
+    let almacenesHtml = '';
+    if (art.existencias_almacenes && art.existencias_almacenes.length > 0) {
+        almacenesHtml = art.existencias_almacenes.map(al => {
+            const esRT = (al.empresa === 'RT' || al.nombre.toUpperCase().startsWith('RT '));
+            if (esRT) {
+                return `
+                    <div class="bg-white rounded-xl border border-amber-300/90 hover:border-amber-500 p-2.5 flex items-center justify-between shadow-2xs transition">
+                        <div class="flex items-center gap-2 min-w-0 pr-2">
+                            <span class="text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded shrink-0">RT</span>
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-tight truncate">${al.nombre}</span>
+                        </div>
+                        <div class="text-base font-black text-slate-900 shrink-0 tabular-nums">${al.piezas}</div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="bg-white rounded-xl border border-red-200/90 hover:border-red-400 p-2.5 flex items-center justify-between shadow-2xs transition">
+                        <div class="flex items-center gap-2 min-w-0 pr-2">
+                            <span class="text-[9px] font-black bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.5 rounded shrink-0">BC</span>
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-tight truncate">${al.nombre}</span>
+                        </div>
+                        <div class="text-base font-black text-slate-900 shrink-0 tabular-nums">${al.piezas}</div>
+                    </div>
+                `;
+            }
+        }).join('');
+    } else {
+        almacenesHtml = '<div class="p-8 text-center text-xs text-slate-400 italic">Sin existencias registradas en almacenes</div>';
+    }
+
+    // Renderizar equivalencias (con tarjetas verdes para stock > 0 y fondo rosado suave para Sin existencia)
+    let equivsHtml = '';
+    if (art.equivalencias && art.equivalencias.length > 0) {
+        equivsHtml = art.equivalencias.map(eq => {
+            if (eq.stock > 0) {
+                return `
+                    <div class="bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-200/90 hover:border-emerald-400 rounded-2xl p-2.5 transition cursor-pointer shadow-2xs"
+                         onclick="pvCargarArticuloMostrador('${eq.clave}')" title="Cargar equivalente ${eq.clave}">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-900">${eq.clave}</span>
+                            <span class="text-xs font-black text-slate-900">${formatearMoneda(eq.precio)}</span>
+                        </div>
+                        <div class="flex items-end justify-between gap-1 mt-1">
+                            <div class="text-[10px] text-slate-600 line-clamp-2 leading-tight flex-1 pr-1 font-medium">${eq.nombre}</div>
+                            <div class="text-xs font-black text-emerald-700 shrink-0 whitespace-nowrap">${eq.stock} pzas</div>
+                        </div>
+                        ${(eq.stock_bc > 0 || eq.stock_rt > 0) ? `
+                            <div class="flex items-center gap-1.5 mt-1.5 text-[8.5px] font-bold">
+                                ${eq.stock_bc > 0 ? `<span class="bg-red-50 text-red-700 border border-red-200 px-1 py-0.2 rounded">🔴 BC: ${eq.stock_bc}</span>` : ''}
+                                ${eq.stock_rt > 0 ? `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-1 py-0.2 rounded">🟡 RT: ${eq.stock_rt}</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="bg-rose-50/50 hover:bg-rose-50 border border-rose-200/80 rounded-2xl p-2.5 transition cursor-pointer shadow-2xs"
+                         onclick="pvCargarArticuloMostrador('${eq.clave}')" title="Cargar equivalente ${eq.clave}">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-800">${eq.clave}</span>
+                            <span class="text-xs font-black text-slate-800">${formatearMoneda(eq.precio)}</span>
+                        </div>
+                        <div class="flex items-end justify-between gap-1 mt-1">
+                            <div class="text-[10px] text-slate-500 line-clamp-2 leading-tight flex-1 pr-1">${eq.nombre}</div>
+                            <div class="text-[10px] font-black text-rose-600 shrink-0 whitespace-nowrap">Sin existencia</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+    } else {
+        equivsHtml = '<div class="p-8 text-center text-xs text-slate-400 italic">No hay equivalencias registradas para esta pieza</div>';
+    }
+
+    grid.innerHTML = `
+        <div class="col-span-full bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
+            ${barraVolver}
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                <!-- COLUMNA 1: FICHA TÉCNICA DEL PRODUCTO (lg:col-span-5) -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-3.5 border-b lg:border-b-0 lg:border-r border-slate-200 pb-5 lg:pb-0 lg:pr-5">
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">${art.clave}</div>
+                        <div class="text-sm font-bold text-slate-700 mt-2">
+                            Inventario almacén: <span class="text-emerald-600 font-black text-base sm:text-lg">${art.stock_tu_almacen || 0}</span> pzas
+                        </div>
+                        <div class="text-xs font-bold text-blue-700 mt-1">
+                            Tabla asignada: ${tablaAsig}
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-900 uppercase leading-snug mt-2.5 tracking-tight">
+                            ${art.nombre}
+                        </h2>
+                        <div class="text-xs text-slate-500 font-semibold mt-1">
+                            Ubicación: <span class="text-slate-700 font-bold">${art.ubicacion || '-'}</span>
+                        </div>
+                        <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-2 tracking-tight">
+                            ${formatearMoneda(art.precio)}
+                        </div>
+
+                        <!-- Botones de Acción (AGREGAR AL PEDIDO, SOLICITAR TRASLADO, COTIZACION) -->
+                        <div class="flex flex-wrap items-center gap-2 pt-3">
+                            <button type="button" onclick="pvAgregarAlPedidoDesdeMostrador()"
+                                    class="flex-1 min-w-[130px] py-3 px-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5">
+                                <span>AGREGAR AL PEDIDO</span>
+                            </button>
+                            <button type="button" onclick="pvSolicitarTrasladoDesdeMostrador()"
+                                    class="flex-1 min-w-[130px] py-3 px-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5">
+                                <span>SOLICITAR TRASLADO</span>
+                            </button>
+                            <button type="button" onclick="pvCotizarDesdeMostrador()"
+                                    class="py-2.5 px-3.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs uppercase rounded-xl transition cursor-pointer">
+                                <span>COTIZACION</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de IMAGEN con Lupa Naranja para Zoom -->
+                    <div class="h-44 sm:h-52 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 relative flex items-center justify-center overflow-hidden p-2 mt-2">
+                        ${fotoHtml}
+                        <button type="button" onclick="pvAbrirFotoZoom('${art.foto_url || ''}', '${art.clave}', '${art.nombre}')"
+                                title="Ampliar imagen"
+                                class="w-8 h-8 rounded-full bg-amber-400 hover:bg-amber-500 text-slate-950 shadow-md flex items-center justify-center text-sm font-black absolute top-2 right-2 transition cursor-pointer active:scale-95">
+                            🔍
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: EXISTENCIAS POR ALMACÉN (lg:col-span-4) -->
+                <div class="lg:col-span-4 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 pb-5 lg:pb-0 lg:pr-5">
+                    <div>
+                        <div class="flex flex-col gap-1.5 pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-900">EXISTENCIAS POR ALMACÉN</span>
+                                <span class="text-xs font-bold text-slate-600">TOTAL: <strong class="text-sm font-black text-slate-900">${art.total_piezas || 0}</strong></span>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                <span class="inline-flex items-center gap-1 font-black text-[10px] text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">🔴 BC: ${art.stock_bc_total || 0} pzas</span>
+                                <span class="inline-flex items-center gap-1 font-black text-[10px] text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full">🟡 RT: ${art.stock_rt_total || 0} pzas</span>
+                            </div>
+                        </div>
+
+                        <!-- Lista con Scroll de Almacenes -->
+                        <div class="max-h-[460px] overflow-y-auto space-y-2 pr-1 pt-2">
+                            ${almacenesHtml}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 3: EQUIVALENCIAS (lg:col-span-3) -->
+                <div class="lg:col-span-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-900">Equivalencias (${art.equivalencias ? art.equivalencias.length : 0})</span>
+                        </div>
+
+                        <!-- Lista con Scroll de Equivalencias -->
+                        <div class="max-h-[460px] overflow-y-auto space-y-2 pr-1 pt-2">
+                            ${equivsHtml}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+function pvVolverAGridResultados() {
+    if (PV_STATE.articulosEncontrados && PV_STATE.articulosEncontrados.length > 0) {
+        pvRenderizarGridArticulos(PV_STATE.articulosEncontrados);
+        const cEl = document.getElementById('pvConteoArticulosEncontrados');
+        if (cEl) cEl.textContent = PV_STATE.articulosEncontrados.length;
+    }
+}
+
+function pvAgregarAlPedidoDesdeMostrador() {
+    const art = PV_STATE.articuloMostradorActivo;
+    if (!art) return;
+    const stockLocal = parseFloat(art.stock_tu_almacen) || 0;
+    const stockCedis = parseFloat(art.stock_cedis) || 0;
+
+    pvAgregarAlCarrito({
+        articulo_id: art.articulo_id,
+        clave: art.clave,
+        nombre: art.nombre,
+        precio: art.precio,
+        stock_global: art.total_piezas || 0,
+        stock_local: stockLocal,
+        stock_cedis: stockCedis,
+        bonificacion: (art.clave.startsWith('G-') || art.nombre.toUpperCase().includes('ACUMULADOR'))
+            ? { clave: 'B03', monto: 525.0, nombre: 'BONIFICACION ACUMULADOR USADO GRUPO 3' }
+            : null
+    });
+}
+
+function pvSolicitarTrasladoDesdeMostrador() {
+    const art = PV_STATE.articuloMostradorActivo;
+    if (!art) return;
+    const stockLocal = parseFloat(art.stock_tu_almacen) || 0;
+    const stockCedis = parseFloat(art.stock_cedis) || 0;
+
+    pvAbrirModalSolicitarTraspasoCedis({
+        articulo_id: art.articulo_id,
+        clave: art.clave,
+        nombre: art.nombre,
+        stock_local: stockLocal,
+        stock_cedis: stockCedis
+    });
+}
+
+function pvCotizarDesdeMostrador() {
+    pvAgregarAlPedidoDesdeMostrador();
+    pvGenerarCotizacion();
+}
+
+function pvAbrirFotoZoom(url, clave, nombre) {
+    if (!url) {
+        mostrarNotificacion(`No hay imagen fotográfica disponible para ${clave}.`, "info");
+        return;
+    }
+    let modalZoom = document.getElementById('pvModalFotoZoomFull');
+    if (!modalZoom) {
+        modalZoom = document.createElement('div');
+        modalZoom.id = 'pvModalFotoZoomFull';
+        modalZoom.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs';
+        modalZoom.onclick = (e) => {
+            if (e.target === modalZoom || e.target.classList.contains('pv-close-zoom')) {
+                modalZoom.classList.add('hidden');
+            }
+        };
+        document.body.appendChild(modalZoom);
+    }
+    modalZoom.innerHTML = `
+        <div class="bg-white rounded-3xl p-4 max-w-2xl w-full shadow-2xl relative flex flex-col items-center">
+            <button type="button" class="pv-close-zoom absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-2xl font-black cursor-pointer">&times;</button>
+            <div class="text-xs font-black text-slate-800 uppercase tracking-tight mb-2">${clave} &bull; ${nombre}</div>
+            <div class="h-96 w-full flex items-center justify-center bg-slate-50 rounded-2xl overflow-hidden p-2">
+                <img src="${url}" alt="${clave}" class="max-h-full max-w-full object-contain">
+            </div>
+        </div>
+    `;
+    modalZoom.classList.remove('hidden');
 }
 
 // ================= MODAL DETALLE DE ARTÍCULO (Screenshot 3) =================
@@ -1032,15 +1370,21 @@ async function pvAbrirModalDetalle(clave) {
             const contAlm = document.getElementById('pvModalListaAlmacenes');
             if (contAlm) {
                 if (art.existencias_almacenes && art.existencias_almacenes.length > 0) {
-                    contAlm.innerHTML = art.existencias_almacenes.map(al => `
-                        <div class="py-1.5 flex items-center justify-between text-xs">
-                            <div>
-                                <div class="font-bold text-slate-800">${al.nombre}</div>
-                                ${al.comprometidas ? `<div class="text-[9px] text-amber-600 font-semibold">Comprom.: ${al.comprometidas}</div>` : ''}
+                    contAlm.innerHTML = art.existencias_almacenes.map(al => {
+                        const esRT = (al.empresa === 'RT' || al.nombre.toUpperCase().startsWith('RT '));
+                        const badgeColor = esRT
+                            ? '<span class="text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded shrink-0 mr-1.5">RT</span>'
+                            : '<span class="text-[9px] font-black bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.5 rounded shrink-0 mr-1.5">BC</span>';
+                        return `
+                            <div class="py-1.5 flex items-center justify-between text-xs border-b border-slate-50 last:border-0">
+                                <div class="flex items-center min-w-0 pr-2">
+                                    ${badgeColor}
+                                    <div class="font-bold text-slate-800 truncate">${al.nombre}</div>
+                                </div>
+                                <div class="text-sm font-black text-slate-900 shrink-0 tabular-nums">${al.piezas}</div>
                             </div>
-                            <div class="text-sm font-black text-slate-900">${al.piezas}</div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     contAlm.innerHTML = '<div class="p-3 text-center text-slate-400 italic">Sin existencias registradas</div>';
                 }
