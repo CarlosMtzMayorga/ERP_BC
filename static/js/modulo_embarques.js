@@ -507,35 +507,153 @@ async function seleccionarTraspasoPendiente(folio) {
         inputDoc.value = folioLimpio;
     }
 
-    // 1. Si ya tenemos el traspaso precargado en memoria, usarlo de inmediato
-    const docCache = traspasosPendientesCache.find(t => String(t.folio).toUpperCase().replace('#', '').trim() === folioLimpio.toUpperCase());
-    if (docCache) {
-        const selSuc = document.getElementById('selectNuevoEmbarqueDestinoSucursal');
-        if (selSuc && docCache.almacen_destino_id) {
-            selSuc.value = docCache.almacen_destino_id;
+    let docObj = traspasosPendientesCache.find(t => String(t.folio).toUpperCase().replace('#', '').trim() === folioLimpio.toUpperCase());
+
+    if (!docObj) {
+        try {
+            const res = await fetch(`/api/embarques/buscar-origen?q=${encodeURIComponent(folioLimpio)}`);
+            const data = await res.json();
+            if (data.success && data.resultados && data.resultados.length > 0) {
+                docObj = data.resultados[0];
+            }
+        } catch (e) {
+            console.error("Error buscando origen:", e);
         }
+    }
 
-        partidasEmbarquePlanificadas = (docCache.partidas || []).map(p => ({
-            articulo_id: p.articulo_id,
-            clave: p.clave,
-            nombre: p.nombre,
-            unidades_requeridas: p.unidades,
-            unidades_empacadas: 0
-        }));
-
-        reproducirSonidoEscaner('ok');
-        mostrarAlerta('success', `Traspaso #${docCache.folio} cargado con ${partidasEmbarquePlanificadas.length} artículos (${docCache.total_piezas || 0} pzas) para ${docCache.almacen_destino_nombre}.`);
-        
-        // Scroll suave al paso 1 para iniciar empaque
-        document.getElementById('inputNuevoEmbarqueDoctoOrigen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!docObj) {
+        mostrarAlerta('error', `No se encontró el documento ${folioLimpio} en Microsip.`);
         return;
     }
 
-    // 2. Si no estaba en caché, buscarlo vía API
-    await cargarItemsDesdeOrigenMicrosip();
+    // Configurar destino
+    const selSuc = document.getElementById('selectNuevoEmbarqueDestinoSucursal');
+    if (selSuc && docObj.almacen_destino_id) {
+        selSuc.value = docObj.almacen_destino_id;
+    }
+
+    // Preparar partidas planificadas con sus códigos alternos
+    partidasEmbarquePlanificadas = (docObj.partidas || []).map(p => ({
+        articulo_id: p.articulo_id,
+        clave: p.clave,
+        nombre: p.nombre,
+        unidades_requeridas: Number(p.unidades || 1),
+        unidades_empacadas: 0,
+        todas_claves: Array.isArray(p.todas_claves) ? p.todas_claves : [p.clave]
+    }));
+
+    // Iniciar automáticamente la sesión de empaque en el servidor
+    try {
+        const destNombre = docObj.almacen_destino_nombre || (selSuc && selSuc.selectedIndex > 0 ? selSuc.options[selSuc.selectedIndex].text : 'SUCURSAL DESTINO');
+        const resCrear = await fetch('/api/embarques/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tipo_origen: 'RESURTIDO_TRASPASO',
+                almacen_destino_id: docObj.almacen_destino_id || null,
+                almacen_destino_nombre: destNombre,
+                documento_referencia: docObj.folio
+            })
+        });
+        const dataCrear = await resCrear.json();
+        if (!dataCrear.success) {
+            mostrarAlerta('error', dataCrear.error || 'No se pudo iniciar el embarque para este traspaso.');
+            return;
+        }
+
+        embarqueActivo = {
+            id: dataCrear.embarque_id,
+            folio: dataCrear.folio,
+            destino: destNombre,
+            tipo: 'RESURTIDO_TRASPASO',
+            docRef: docObj.folio
+        };
+        numeroCajaActual = 1;
+        partidasCajaActual = [];
+
+        // 1. Ocultar la sección de arriba (Configurar Resurtido y Tarjetas de Traspasos)
+        const seccionArriba = document.getElementById('seccionSeleccionTraspasoEmbarque');
+        if (seccionArriba) seccionArriba.classList.add('hidden');
+
+        // 2. Mostrar la barra de traspaso activo
+        const barraActivo = document.getElementById('barraTraspasoActivoEmbarque');
+        if (barraActivo) barraActivo.classList.remove('hidden');
+
+        const elFolio = document.getElementById('txtTraspasoActivoFolio');
+        const elDest = document.getElementById('txtTraspasoActivoDestino');
+        const elFolBase = document.getElementById('txtTraspasoActivoFolioBase');
+        const elTotales = document.getElementById('txtTraspasoActivoTotales');
+
+        if (elFolio) elFolio.textContent = `#${docObj.folio}`;
+        if (elDest) elDest.textContent = destNombre;
+        if (elFolBase) elFolBase.textContent = `Folio Embarque: #${dataCrear.folio}`;
+        if (elTotales) elTotales.textContent = `${partidasEmbarquePlanificadas.length} artículos (${docObj.total_piezas || 0} pzas solicitadas)`;
+
+        // 3. Configurar caja 1
+        const badgeFolio = document.getElementById('badgeFolioAsignado');
+        const txtCaja = document.getElementById('txtFolioCajaActual');
+        const badgeCaja = document.getElementById('badgeCajaNumero');
+        const txtTotalPiezas = document.getElementById('txtTotalPiezasCajaActual');
+
+        if (badgeFolio) badgeFolio.textContent = `Folio Base: ${dataCrear.folio}`;
+        if (txtCaja) txtCaja.textContent = `${dataCrear.folio}-1`;
+        if (badgeCaja) badgeCaja.textContent = `Caja 1`;
+        if (txtTotalPiezas) txtTotalPiezas.textContent = `0 pzas`;
+
+        // 4. Mostrar panel de empaque y renderizar checklist y tabla
+        const panelEmpaque = document.getElementById('panelEmpaqueCajas');
+        if (panelEmpaque) panelEmpaque.classList.remove('hidden');
+
+        renderizarChecklistTraspaso();
+        renderizarTablaCajaActual();
+        limpiarContenedorCajasEmpacadas();
+
+        reproducirSonidoEscaner('ok');
+        mostrarAlerta('success', `Traspaso #${docObj.folio} cargado. Escanea los artículos para la Caja 1.`);
+
+        setTimeout(() => {
+            const inp = document.getElementById('inputEscanerEmbarqueArticulo');
+            if (inp) {
+                inp.value = '';
+                inp.focus();
+            }
+        }, 250);
+
+    } catch (e) {
+        console.error("Error al iniciar empaque de traspaso:", e);
+        mostrarAlerta('error', 'Error al inicializar la sesión de empaque.');
+    }
 }
 
-// ================= BÚSQUEDA DE DOCUMENTO DE ORIGEN (MICROSIP) =================
+// ================= CAMBIAR O CANCELAR TRASPASO ACTIVO =================
+function cambiarOCancelarTraspasoActivo() {
+    const tienePiezas = partidasCajaActual.length > 0;
+    const contCajas = document.getElementById('contenedorCajasEmpacadas');
+    const tieneCajasCerradas = contCajas && !contCajas.querySelector('.col-span-full');
+
+    if (tienePiezas || tieneCajasCerradas) {
+        if (!confirm('¿Deseas cambiar de traspaso? La sesión actual de empaque se cancelará.')) {
+            return;
+        }
+    }
+
+    embarqueActivo = null;
+    partidasEmbarquePlanificadas = [];
+    partidasCajaActual = [];
+    numeroCajaActual = 1;
+
+    // Ocultar barra de traspaso y panel de empaque
+    document.getElementById('barraTraspasoActivoEmbarque')?.classList.add('hidden');
+    document.getElementById('panelEmpaqueCajas')?.classList.add('hidden');
+
+    // Volver a mostrar la sección de arriba
+    document.getElementById('seccionSeleccionTraspasoEmbarque')?.classList.remove('hidden');
+
+    // Recargar traspasos pendientes
+    cargarTraspasosPendientesEmbarque();
+}
+
+// ================= BÚSQUEDA DE DOCUMENTO DE ORIGEN MANUAL (MICROSIP) =================
 async function cargarItemsDesdeOrigenMicrosip() {
     const inputDoc = document.getElementById('inputNuevoEmbarqueDoctoOrigen');
     const docRef = (inputDoc?.value || '').replace('#', '').trim();
@@ -544,38 +662,10 @@ async function cargarItemsDesdeOrigenMicrosip() {
         return;
     }
 
-    try {
-        const res = await fetch(`/api/embarques/buscar-origen?q=${encodeURIComponent(docRef)}`);
-        const data = await res.json();
-        if (!data.success || !data.resultados || data.resultados.length === 0) {
-            mostrarAlerta('info', `No se encontró el documento ${docRef} en Microsip. Puedes continuar manualmente.`);
-            return;
-        }
-
-        const primerRes = data.resultados[0];
-        // Asignar destino si coincide
-        const selSuc = document.getElementById('selectNuevoEmbarqueDestinoSucursal');
-        if (selSuc && primerRes.almacen_destino_id) {
-            selSuc.value = primerRes.almacen_destino_id;
-        }
-
-        // Cargar partidas sugeridas
-        partidasEmbarquePlanificadas = (primerRes.partidas || []).map(p => ({
-            articulo_id: p.articulo_id,
-            clave: p.clave,
-            nombre: p.nombre,
-            unidades_requeridas: p.unidades,
-            unidades_empacadas: 0
-        }));
-
-        reproducirSonidoEscaner('ok');
-        mostrarAlerta('success', `Documento #${primerRes.folio} encontrado con ${partidasEmbarquePlanificadas.length} artículos (${primerRes.total_piezas || 0} pzas).`);
-    } catch (e) {
-        mostrarAlerta('error', 'Error al buscar documento en Microsip.');
-    }
+    await seleccionarTraspasoPendiente(docRef);
 }
 
-// ================= INICIAR SESIÓN DE EMPAQUE =================
+// ================= INICIAR SESIÓN DE EMPAQUE MANUAL =================
 async function iniciarSesionEmpaque() {
     const tipo = document.getElementById('selectNuevoEmbarqueTipo')?.value || 'RESURTIDO_TRASPASO';
     const selSuc = document.getElementById('selectNuevoEmbarqueDestinoSucursal');
@@ -623,10 +713,22 @@ async function iniciarSesionEmpaque() {
             id: data.embarque_id,
             folio: data.folio,
             destino: destNombre,
-            tipo: tipo
+            tipo: tipo,
+            docRef: docRef
         };
         numeroCajaActual = 1;
         partidasCajaActual = [];
+
+        // Ocultar selección de arriba
+        document.getElementById('seccionSeleccionTraspasoEmbarque')?.classList.add('hidden');
+
+        // Mostrar barra activa
+        const barraActivo = document.getElementById('barraTraspasoActivoEmbarque');
+        if (barraActivo) barraActivo.classList.remove('hidden');
+        document.getElementById('txtTraspasoActivoFolio').textContent = docRef ? `#${docRef}` : `Embarque #${data.folio}`;
+        document.getElementById('txtTraspasoActivoDestino').textContent = destNombre;
+        document.getElementById('txtTraspasoActivoFolioBase').textContent = `Folio Embarque: #${data.folio}`;
+        document.getElementById('txtTraspasoActivoTotales').textContent = `${partidasEmbarquePlanificadas.length} artículos planificados`;
 
         // Actualizar UI de empaque
         document.getElementById('badgeFolioAsignado').textContent = `Folio Base: ${data.folio}`;
@@ -635,6 +737,7 @@ async function iniciarSesionEmpaque() {
         document.getElementById('txtTotalPiezasCajaActual').textContent = `0 pzas`;
 
         document.getElementById('panelEmpaqueCajas').classList.remove('hidden');
+        renderizarChecklistTraspaso();
         renderizarTablaCajaActual();
         limpiarContenedorCajasEmpacadas();
 
@@ -650,10 +753,110 @@ async function iniciarSesionEmpaque() {
     }
 }
 
-// ================= ESCANEO DE ARTÍCULOS PARA CAJA ACTUAL =================
+// ================= CHECKLIST Y CONTROL DE ARTÍCULOS DEL TRASPASO =================
+function renderizarChecklistTraspaso() {
+    const tbody = document.getElementById('tablaChecklistTraspasoBody');
+    if (!tbody) return;
+
+    if (!partidasEmbarquePlanificadas || partidasEmbarquePlanificadas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No hay partidas predefinidas para este embarque.</td></tr>`;
+        return;
+    }
+
+    let totalRequeridas = 0;
+    let totalEmpacadas = 0;
+    let totalFaltantes = 0;
+    let totalSobrantes = 0;
+
+    tbody.innerHTML = '';
+
+    partidasEmbarquePlanificadas.forEach(p => {
+        const req = Number(p.unidades_requeridas || 0);
+        const emp = Number(p.unidades_empacadas || 0);
+        totalRequeridas += req;
+        totalEmpacadas += emp;
+
+        let difHtml = '';
+        let statusBadge = '';
+        let rowBg = 'hover:bg-slate-50 transition-colors';
+
+        if (emp === 0) {
+            totalFaltantes += req;
+            difHtml = `<span class="px-2 py-0.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-100">Faltan ${req}</span>`;
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">⏳ Pendiente</span>`;
+        } else if (emp < req) {
+            const falta = req - emp;
+            totalFaltantes += falta;
+            const pct = Math.round((emp / req) * 100);
+            difHtml = `<span class="px-2 py-0.5 rounded-lg text-xs font-black text-amber-800 bg-amber-50 border border-amber-200">Faltan ${falta}</span>`;
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">📦 En Proceso (${pct}%)</span>`;
+            rowBg = 'bg-blue-50/20 hover:bg-blue-50/40 transition-colors';
+        } else if (emp === req) {
+            difHtml = `<span class="px-2 py-0.5 rounded-lg text-xs font-black text-emerald-800 bg-emerald-50 border border-emerald-200">✔️ Completo</span>`;
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">✅ Listo</span>`;
+            rowBg = 'bg-emerald-50/20 hover:bg-emerald-50/30 transition-colors';
+        } else {
+            const sobra = emp - req;
+            totalSobrantes += sobra;
+            difHtml = `<span class="px-2 py-0.5 rounded-lg text-xs font-black text-rose-800 bg-rose-50 border border-rose-200">⚠️ Sobran ${sobra}</span>`;
+            statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">⚠️ Excedente</span>`;
+            rowBg = 'bg-rose-50/30 hover:bg-rose-50/50 transition-colors';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = `${rowBg} border-b border-slate-100`;
+        tr.innerHTML = `
+            <td class="py-2.5 px-3 font-mono font-black text-slate-900 text-xs">${p.clave}</td>
+            <td class="py-2.5 px-3 text-xs text-slate-700 font-bold">${p.nombre}</td>
+            <td class="py-2.5 px-3 text-center font-mono font-black text-xs text-slate-700">${req}</td>
+            <td class="py-2.5 px-3 text-center font-mono font-black text-xs text-blue-700 bg-blue-50/40">${emp}</td>
+            <td class="py-2.5 px-3 text-center font-mono">${difHtml}</td>
+            <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Actualizar Resumen y Barra de Progreso
+    const pctTotal = totalRequeridas > 0 ? Math.min(100, Math.round((totalEmpacadas / totalRequeridas) * 100)) : 0;
+    
+    const badgeProg = document.getElementById('badgeProgresoTotalPzas');
+    if (badgeProg) badgeProg.textContent = `${totalEmpacadas} / ${totalRequeridas} pzas (${pctTotal}%)`;
+
+    const badgeFalta = document.getElementById('badgeFaltantesTraspaso');
+    if (badgeFalta) {
+        badgeFalta.textContent = totalFaltantes > 0 ? `Faltan: ${totalFaltantes} pzas` : `✔️ Sin faltantes`;
+        badgeFalta.className = totalFaltantes > 0 
+            ? "px-3 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200"
+            : "px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200";
+    }
+
+    const badgeSobra = document.getElementById('badgeSobrantesTraspaso');
+    if (badgeSobra) {
+        if (totalSobrantes > 0) {
+            badgeSobra.textContent = `Sobran: ${totalSobrantes} pzas`;
+            badgeSobra.classList.remove('hidden');
+        } else {
+            badgeSobra.classList.add('hidden');
+        }
+    }
+
+    const barra = document.getElementById('barraProgresoTraspaso');
+    if (barra) {
+        barra.style.width = `${pctTotal}%`;
+        if (totalSobrantes > 0) {
+            barra.className = "bg-rose-500 h-2 rounded-full transition-all duration-300";
+        } else if (pctTotal >= 100) {
+            barra.className = "bg-emerald-500 h-2 rounded-full transition-all duration-300";
+        } else {
+            barra.className = "bg-indigo-500 h-2 rounded-full transition-all duration-300";
+        }
+    }
+}
+
+// ================= ESCANEO DE ARTÍCULOS CON VALIDACIÓN ESTRICTA =================
 function procesarScanEmbarqueInput() {
     if (!embarqueActivo) {
-        mostrarAlerta('error', 'Debes presionar "Iniciar Empaque" antes de escanear artículos.');
+        mostrarAlerta('error', 'Debes cargar un traspaso antes de escanear artículos.');
         return;
     }
 
@@ -662,41 +865,69 @@ function procesarScanEmbarqueInput() {
     if (!codigo) return;
     input.value = '';
 
-    // Buscar en planificadas o agregar libre
-    let itemClave = codigo;
-    let itemNombre = 'Artículo Escaneado';
-    let artId = null;
+    // VALIDACIÓN ESTRICTA: Buscar el código en las partidas del traspaso (clave, barcode o códigos alternos)
+    const pReq = partidasEmbarquePlanificadas.find(p => {
+        const clv = (p.clave || '').trim().toUpperCase();
+        const bar = (p.codigo_barras || '').trim().toUpperCase();
+        if (clv === codigo || bar === codigo) return true;
+        if (Array.isArray(p.todas_claves)) {
+            return p.todas_claves.some(k => (k || '').trim().toUpperCase() === codigo);
+        }
+        return false;
+    });
 
-    const pReq = partidasEmbarquePlanificadas.find(p => p.clave === codigo || (p.codigo_barras && p.codigo_barras === codigo));
-    if (pReq) {
-        itemClave = pReq.clave;
-        itemNombre = pReq.nombre;
-        artId = pReq.articulo_id;
-        pReq.unidades_empacadas = (pReq.unidades_empacadas || 0) + 1;
+    // Si NO pertenece al traspaso, RECHAZARLO TOTALMENTE
+    if (!pReq) {
+        reproducirSonidoEscaner('error');
+        mostrarAlerta('error', `⛔ NO PERMITIDO: El artículo "${codigo}" NO PERTENECE a este traspaso (#${embarqueActivo.docRef || embarqueActivo.folio}). Solo puedes surtir artículos de esta lista.`);
+        
+        if (input) {
+            input.classList.add('ring-4', 'ring-rose-500', 'bg-rose-50');
+            setTimeout(() => {
+                input.classList.remove('ring-4', 'ring-rose-500', 'bg-rose-50');
+                input.focus();
+            }, 1000);
+        }
+        return;
     }
 
+    const yaEmpacadas = Number(pReq.unidades_empacadas || 0);
+    const requeridas = Number(pReq.unidades_requeridas || 0);
+
+    if (yaEmpacadas >= requeridas) {
+        reproducirSonidoEscaner('error');
+        mostrarAlerta('warning', `⚠️ SOBRANTE: Para "${pReq.clave}" se solicitaron ${requeridas} pzas y ya tienes ${yaEmpacadas}. Agregando pieza excedente (+1).`);
+    } else {
+        reproducirSonidoEscaner('ok');
+    }
+
+    pReq.unidades_empacadas = yaEmpacadas + 1;
+
     // Agregar a partidas de la caja actual
-    let exist = partidasCajaActual.find(p => p.clave === itemClave);
+    let exist = partidasCajaActual.find(p => p.clave === pReq.clave);
     if (exist) {
         exist.unidades += 1;
     } else {
         partidasCajaActual.push({
-            articulo_id: artId,
-            clave: itemClave,
-            nombre: itemNombre,
+            articulo_id: pReq.articulo_id,
+            clave: pReq.clave,
+            nombre: pReq.nombre,
             codigo_barras: codigo,
             unidades: 1
         });
     }
 
-    reproducirSonidoEscaner('ok');
     renderizarTablaCajaActual();
+    renderizarChecklistTraspaso();
 
     // Actualizar banner de último escaneado
     const aviso = document.getElementById('avisoUltimoArticuloEscaneado');
     const txtAviso = document.getElementById('txtUltimoEscaneado');
     if (aviso && txtAviso) {
-        txtAviso.textContent = `Último artículo: ${itemClave} - ${itemNombre}`;
+        const difTxt = pReq.unidades_empacadas > pReq.unidades_requeridas 
+            ? `(Sobran +${pReq.unidades_empacadas - pReq.unidades_requeridas})` 
+            : `(${pReq.unidades_empacadas} de ${pReq.unidades_requeridas} pzas)`;
+        txtAviso.textContent = `Último: ${pReq.clave} - ${pReq.nombre} ${difTxt}`;
         aviso.classList.remove('hidden');
     }
 
@@ -740,9 +971,16 @@ function renderizarTablaCajaActual() {
 }
 
 function quitarItemCajaActual(idx) {
-    if (partidasCajaActual[idx]) {
+    const item = partidasCajaActual[idx];
+    if (item) {
+        // Reducir la cuenta en el checklist del traspaso
+        const pReq = partidasEmbarquePlanificadas.find(p => p.clave === item.clave);
+        if (pReq) {
+            pReq.unidades_empacadas = Math.max(0, (pReq.unidades_empacadas || 0) - (item.unidades || 1));
+        }
         partidasCajaActual.splice(idx, 1);
         renderizarTablaCajaActual();
+        renderizarChecklistTraspaso();
     }
 }
 
@@ -842,8 +1080,19 @@ function finalizarEmbarqueCompleto() {
     if (partidasCajaActual.length > 0) {
         if (confirm(`Tienes ${partidasCajaActual.length} artículo(s) en la caja actual sin cerrar. ¿Deseas cerrarla e imprimir su etiqueta Zebra antes de finalizar?`)) {
             cerrarCajaActualEImprimir().then(() => {
-                terminarSesion();
+                validarYTerminarEmbarque();
             });
+            return;
+        }
+    }
+    validarYTerminarEmbarque();
+}
+
+function validarYTerminarEmbarque() {
+    const faltantes = partidasEmbarquePlanificadas.filter(p => Number(p.unidades_empacadas || 0) < Number(p.unidades_requeridas || 0));
+    if (faltantes.length > 0) {
+        const totalFaltan = faltantes.reduce((sum, p) => sum + (Number(p.unidades_requeridas || 0) - Number(p.unidades_empacadas || 0)), 0);
+        if (!confirm(`⚠️ ATENCIÓN: Aún faltan ${totalFaltan} piezas por empacar en este traspaso.\n\n¿Estás seguro de finalizar el embarque con piezas pendientes?`)) {
             return;
         }
     }
@@ -857,7 +1106,9 @@ function terminarSesion() {
     partidasCajaActual = [];
     numeroCajaActual = 1;
 
-    document.getElementById('panelEmpaqueCajas').classList.add('hidden');
+    document.getElementById('barraTraspasoActivoEmbarque')?.classList.add('hidden');
+    document.getElementById('panelEmpaqueCajas')?.classList.add('hidden');
+    document.getElementById('seccionSeleccionTraspasoEmbarque')?.classList.remove('hidden');
     document.getElementById('badgeFolioAsignado').textContent = 'Folio Base: --';
 
     cambiarSubTabEmbarquesInterno('listado');
@@ -868,7 +1119,11 @@ function cancelarSesionEmpaqueActual() {
         embarqueActivo = null;
         partidasEmbarquePlanificadas = [];
         partidasCajaActual = [];
-        document.getElementById('panelEmpaqueCajas').classList.add('hidden');
+        numeroCajaActual = 1;
+
+        document.getElementById('barraTraspasoActivoEmbarque')?.classList.add('hidden');
+        document.getElementById('panelEmpaqueCajas')?.classList.add('hidden');
+        document.getElementById('seccionSeleccionTraspasoEmbarque')?.classList.remove('hidden');
         document.getElementById('badgeFolioAsignado').textContent = 'Folio Base: --';
         cambiarSubTabEmbarquesInterno('listado');
     }

@@ -877,7 +877,8 @@ def buscar_origen_traspaso():
                     det.ARTICULO_ID,
                     TRIM(ca.CLAVE_ARTICULO),
                     TRIM(a.NOMBRE),
-                    det.UNIDADES
+                    det.UNIDADES,
+                    (SELECT LIST(TRIM(ca2.CLAVE_ARTICULO), ',') FROM CLAVES_ARTICULOS ca2 WHERE ca2.ARTICULO_ID = det.ARTICULO_ID)
                 FROM DOCTOS_IN_DET det
                 JOIN ARTICULOS a ON a.ARTICULO_ID = det.ARTICULO_ID
                 JOIN CLAVES_ARTICULOS ca ON ca.ARTICULO_ID = a.ARTICULO_ID
@@ -888,11 +889,14 @@ def buscar_origen_traspaso():
 
             partidas = []
             for d in cur.fetchall():
+                todas_claves_raw = str(d[4] or '').strip()
+                todas_claves_lista = [k.strip() for k in todas_claves_raw.split(',') if k.strip()] if todas_claves_raw else []
                 partidas.append({
                     "articulo_id": int(d[0]),
                     "clave": str(d[1] or '').strip(),
                     "nombre": str(d[2] or '').strip(),
-                    "unidades": float(d[3] or 1)
+                    "unidades": float(d[3] or 1),
+                    "todas_claves": todas_claves_lista
                 })
 
             total_unidades = sum(p["unidades"] for p in partidas)
