@@ -367,13 +367,13 @@ async function cargarTraspasosPendientesEmbarque() {
     const badgeTotal = document.getElementById('badgeTotalPendientesEmbarque');
     if (!contenedor) return;
 
-    contenedor.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Consultando traspasos en Microsip...</div>`;
+    contenedor.innerHTML = `<div class="col-span-full p-6 text-center text-xs text-slate-400 italic">Consultando traspasos en Microsip...</div>`;
 
     try {
         const res = await fetch('/api/embarques/buscar-origen');
         const data = await res.json();
         if (!data.success || !data.resultados || data.resultados.length === 0) {
-            contenedor.innerHTML = `<div class="p-4 text-center text-xs text-emerald-600 font-bold">✨ No hay traspasos pendientes de embarcar en Microsip.</div>`;
+            contenedor.innerHTML = `<div class="col-span-full p-6 text-center text-xs text-emerald-600 font-bold">✨ No hay traspasos pendientes de embarcar en Microsip.</div>`;
             if (badgeTotal) badgeTotal.textContent = '0 pendientes';
             return;
         }
@@ -387,46 +387,117 @@ async function cargarTraspasosPendientesEmbarque() {
                 : "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300";
         }
 
-        contenedor.innerHTML = '';
-        traspasosPendientesCache.forEach(doc => {
-            const row = document.createElement('div');
-            const estaEmbarcado = doc.ya_embarcado;
-            row.className = `p-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition border-b border-slate-100 last:border-0 ${estaEmbarcado ? 'opacity-50 bg-slate-50/50' : 'cursor-pointer'}`;
-            
-            const badgeEmbarcado = estaEmbarcado 
-                ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-200 text-slate-600">YA EN EMBARQUE</span>`
-                : `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">PENDIENTE</span>`;
-
-            row.innerHTML = `
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="w-9 h-9 rounded-xl ${estaEmbarcado ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-blue-50 text-blue-600 border-blue-200'} flex items-center justify-center font-mono font-black text-sm shrink-0 border">
-                        📋
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-mono font-black text-slate-900 text-xs text-blue-600 hover:underline">#${doc.folio}</span>
-                            ${badgeEmbarcado}
-                            <span class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                                ${doc.almacen_destino_nombre || 'Sucursal Destino'}
-                            </span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                            📅 ${doc.fecha || '--'} • <strong>${doc.total_articulos || 0}</strong> arts (<strong>${doc.total_piezas || 0}</strong> pzas) ${doc.descripcion ? '• ' + doc.descripcion : ''}
-                        </div>
-                    </div>
-                </div>
-                <div class="shrink-0">
-                    <button type="button" onclick="seleccionarTraspasoPendiente('${doc.folio}')" class="px-3 py-1.5 ${estaEmbarcado ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'} text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
-                        <span>⚡ Cargar</span>
-                    </button>
-                </div>
-            `;
-            contenedor.appendChild(row);
-        });
+        const inputFiltro = document.getElementById('inputFiltroTraspasosCards');
+        const filtroVal = inputFiltro ? inputFiltro.value : '';
+        if (filtroVal) {
+            filtrarTraspasosCards(filtroVal);
+        } else {
+            renderizarTraspasosCards(traspasosPendientesCache);
+        }
     } catch (e) {
         console.error("Error al cargar traspasos pendientes:", e);
-        contenedor.innerHTML = `<div class="p-4 text-center text-xs text-red-500 font-bold">Error al consultar traspasos en Microsip.</div>`;
+        contenedor.innerHTML = `<div class="col-span-full p-6 text-center text-xs text-red-500 font-bold">Error al consultar traspasos en Microsip.</div>`;
     }
+}
+
+function renderizarTraspasosCards(docs) {
+    const contenedor = document.getElementById('listaDoctosPendientesEmbarque');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (!docs || docs.length === 0) {
+        contenedor.innerHTML = `
+            <div class="col-span-full p-8 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                <div class="text-2xl mb-1">🔍</div>
+                <div class="text-xs font-bold text-slate-700">No hay traspasos que coincidan con la búsqueda.</div>
+            </div>
+        `;
+        return;
+    }
+
+    docs.forEach(doc => {
+        const estaEmbarcado = doc.ya_embarcado;
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl border transition-all duration-200 p-3.5 flex flex-col justify-between shadow-2xs hover:shadow-md ${
+            estaEmbarcado ? 'border-slate-200 opacity-60 bg-slate-50/70' : 'border-slate-200/90 hover:border-indigo-400 group'
+        }`;
+
+        const badgeEmbarcado = estaEmbarcado
+            ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200">YA EN EMBARQUE</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300">PENDIENTE</span>`;
+
+        card.innerHTML = `
+            <div>
+                <!-- Header de Tarjeta: Folio y Estado -->
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg ${estaEmbarcado ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center text-xs font-mono shrink-0">📋</span>
+                        <span class="font-mono font-black text-xs sm:text-sm text-slate-900 truncate">#${doc.folio}</span>
+                    </div>
+                    ${badgeEmbarcado}
+                </div>
+
+                <!-- Destino / Sucursal -->
+                <div class="mt-2.5">
+                    <div class="text-[9px] font-black uppercase tracking-wider text-slate-400 leading-none">Destino</div>
+                    <div class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-tight truncate mt-1 flex items-center gap-1" title="${doc.almacen_destino_nombre || 'Sucursal Destino'}">
+                        <span>🏬</span>
+                        <span class="truncate">${doc.almacen_destino_nombre || 'Sucursal Destino'}</span>
+                    </div>
+                </div>
+
+                <!-- Resumen de Carga (Artículos y Piezas) -->
+                <div class="flex items-center gap-1.5 mt-2.5 flex-wrap">
+                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200/90 font-black text-[10.5px] px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-2xs">
+                        📦 ${doc.total_articulos || 0} arts
+                    </span>
+                    <span class="bg-emerald-50 text-emerald-800 border border-emerald-200/90 font-black text-[10.5px] px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-2xs">
+                        🔢 ${doc.total_piezas || 0} pzas
+                    </span>
+                </div>
+
+                <!-- Metadatos: Fecha y Solicitante -->
+                <div class="text-[10px] text-slate-500 font-medium mt-2.5 pt-2 border-t border-slate-50 space-y-0.5">
+                    <div class="flex items-center justify-between text-slate-400 text-[9.5px]">
+                        <span>📅 ${doc.fecha || '--'}</span>
+                        ${doc.descripcion ? `<span class="truncate max-w-[130px] text-slate-600 font-bold" title="${doc.descripcion}">👤 ${doc.descripcion}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer: Botón de Acción -->
+            <div class="mt-3">
+                ${estaEmbarcado ? `
+                    <button type="button" onclick="seleccionarTraspasoPendiente('${doc.folio}')"
+                            class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5">
+                        <span>👁️ Ver en Empaque</span>
+                    </button>
+                ` : `
+                    <button type="button" onclick="seleccionarTraspasoPendiente('${doc.folio}')"
+                            class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5 group-hover:bg-indigo-700">
+                        <span>⚡ Cargar Traspaso</span>
+                    </button>
+                `}
+            </div>
+        `;
+
+        contenedor.appendChild(card);
+    });
+}
+
+function filtrarTraspasosCards(termino) {
+    const q = (termino || '').trim().toUpperCase();
+    if (!q) {
+        renderizarTraspasosCards(traspasosPendientesCache);
+        return;
+    }
+    const filtrados = traspasosPendientesCache.filter(doc => {
+        const fol = (doc.folio || '').toUpperCase();
+        const suc = (doc.almacen_destino_nombre || '').toUpperCase();
+        const desc = (doc.descripcion || '').toUpperCase();
+        return fol.includes(q) || suc.includes(q) || desc.includes(q);
+    });
+    renderizarTraspasosCards(filtrados);
 }
 
 async function seleccionarTraspasoPendiente(folio) {
