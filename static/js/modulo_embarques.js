@@ -346,10 +346,17 @@ async function cargarListadoEmbarques() {
                     <div>${emb.creado_en || '--'}</div>
                     <div class="text-[10px] text-slate-400 font-mono">${emb.creado_por || 'ADMIN'}</div>
                 </td>
-                <td class="py-3 px-3.5 text-right">
-                    <button type="button" onclick="verDetalleEmbarqueModal(${emb.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
-                        Ver Cajas 👁️
-                    </button>
+                <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                        ${emb.estatus === 'PREPARANDO' ? `
+                            <button type="button" onclick="continuarEmbarquePreparacion(${emb.id})" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-lg text-xs transition cursor-pointer shadow-xs">
+                                <span>⚡ Continuar Empaque</span>
+                            </button>
+                        ` : ''}
+                        <button type="button" onclick="verDetalleEmbarqueModal(${emb.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition cursor-pointer">
+                            Ver Cajas 👁️
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1481,6 +1488,21 @@ async function verDetalleEmbarqueModal(embId) {
             }
         }
 
+        // Botón Continuar Empaque dentro del Modal si está en PREPARANDO
+        const contBtn = document.getElementById('modalDetalleEmbarqueBotonContinuarContainer');
+        const btnCont = document.getElementById('btnModalContinuarEmbarque');
+        if (contBtn && btnCont) {
+            if (emb.estatus === 'PREPARANDO') {
+                btnCont.onclick = () => {
+                    cerrarModalDetalleEmbarque();
+                    continuarEmbarquePreparacion(emb.id);
+                };
+                contBtn.classList.remove('hidden');
+            } else {
+                contBtn.classList.add('hidden');
+            }
+        }
+
         document.getElementById('modalDetalleEmbarque').classList.remove('hidden');
     } catch (e) {
         mostrarAlerta('error', 'Error al consultar detalle del embarque.');
@@ -1489,6 +1511,143 @@ async function verDetalleEmbarqueModal(embId) {
 
 function cerrarModalDetalleEmbarque() {
     document.getElementById('modalDetalleEmbarque')?.classList.add('hidden');
+}
+
+// ================= REANUDAR O CONTINUAR EMPAQUE DE EMBARQUE =================
+async function continuarEmbarquePreparacion(embId) {
+    try {
+        mostrarAlerta('info', 'Cargando datos del embarque para continuar...');
+
+        // 1. Obtener detalles del embarque
+        const res = await fetch(`/api/embarques/detalle/${embId}`);
+        const data = await res.json();
+        if (!data.success || !data.embarque) {
+            mostrarAlerta('error', 'No se pudo obtener el detalle del embarque.');
+            return;
+        }
+
+        const emb = data.embarque;
+        const cajas = data.cajas || [];
+
+        // 2. Obtener las partidas requeridas del documento de Microsip
+        let docMicrosip = null;
+        const docRef = String(emb.documento_referencia || '').replace('#', '').trim();
+
+        if (docRef) {
+            docMicrosip = traspasosPendientesCache.find(t => String(t.folio).toUpperCase().replace('#', '').trim() === docRef.toUpperCase());
+            if (!docMicrosip) {
+                const resOrig = await fetch(`/api/embarques/buscar-origen?q=${encodeURIComponent(docRef)}`);
+                const dataOrig = await resOrig.json();
+                if (dataOrig.success && dataOrig.resultados && dataOrig.resultados.length > 0) {
+                    docMicrosip = dataOrig.resultados[0];
+                }
+            }
+        }
+
+        // 3. Contabilizar cuántas piezas ya están empacadas en las cajas cerradas existentes
+        const empacadasPorClave = {};
+        cajas.forEach(c => {
+            (c.detalles || []).forEach(d => {
+                const clv = (d.clave || '').trim().toUpperCase();
+                empacadasPorClave[clv] = (empacadasPorClave[clv] || 0) + Number(d.unidades || 0);
+            });
+        });
+
+        // 4. Armar partidas planificadas
+        if (docMicrosip && Array.isArray(docMicrosip.partidas) && docMicrosip.partidas.length > 0) {
+            partidasEmbarquePlanificadas = docMicrosip.partidas.map(p => {
+                const clv = (p.clave || '').trim().toUpperCase();
+                return {
+                    articulo_id: p.articulo_id,
+                    clave: p.clave,
+                    nombre: p.nombre,
+                    unidades_requeridas: Number(p.unidades || 1),
+                    unidades_empacadas: empacadasPorClave[clv] || 0,
+                    todas_claves: Array.isArray(p.todas_claves) ? p.todas_claves : [p.clave]
+                };
+            });
+        } else {
+            partidasEmbarquePlanificadas = Object.keys(empacadasPorClave).map(clv => ({
+                articulo_id: null,
+                clave: clv,
+                nombre: clv,
+                unidades_requeridas: empacadasPorClave[clv] || 1,
+                unidades_empacadas: empacadasPorClave[clv] || 0,
+                todas_claves: [clv]
+            }));
+        }
+
+        // 5. Establecer embarque activo
+        embarqueActivo = {
+            id: emb.id,
+            folio: emb.folio,
+            destino: emb.almacen_destino_nombre || emb.cliente_nombre || 'SUCURSAL DESTINO',
+            tipo: emb.tipo_origen,
+            docRef: emb.documento_referencia
+        };
+
+        // 6. Preparar número de caja siguiente
+        numeroCajaActual = cajas.length + 1;
+        partidasCajaActual = [];
+
+        // 7. Cambiar a la pestaña de empaque
+        cambiarSubTabEmbarquesInterno('nuevo');
+
+        // 8. Ocultar sección superior de selección y mostrar barra de traspaso activo
+        const seccionArriba = document.getElementById('seccionSeleccionTraspasoEmbarque');
+        if (seccionArriba) seccionArriba.classList.add('hidden');
+
+        const barraActivo = document.getElementById('barraTraspasoActivoEmbarque');
+        if (barraActivo) barraActivo.classList.remove('hidden');
+
+        const elFolio = document.getElementById('txtTraspasoActivoFolio');
+        const elDest = document.getElementById('txtTraspasoActivoDestino');
+        const elFolBase = document.getElementById('txtTraspasoActivoFolioBase');
+        const elTotales = document.getElementById('txtTraspasoActivoTotales');
+
+        if (elFolio) elFolio.textContent = docRef ? `#${docRef}` : `Embarque #${emb.folio}`;
+        if (elDest) elDest.textContent = embarqueActivo.destino;
+        if (elFolBase) elFolBase.textContent = `Folio Embarque: #${emb.folio}`;
+        const totalReq = partidasEmbarquePlanificadas.reduce((s, p) => s + (p.unidades_requeridas || 0), 0);
+        if (elTotales) elTotales.textContent = `${partidasEmbarquePlanificadas.length} artículos (${totalReq} pzas solicitadas)`;
+
+        // 9. Actualizar badges y panel de empaque
+        const badgeFolio = document.getElementById('badgeFolioAsignado');
+        const txtCaja = document.getElementById('txtFolioCajaActual');
+        const badgeCaja = document.getElementById('badgeCajaNumero');
+        const txtTotalPiezas = document.getElementById('txtTotalPiezasCajaActual');
+
+        if (badgeFolio) badgeFolio.textContent = `Folio Base: ${emb.folio}`;
+        if (txtCaja) txtCaja.textContent = `${emb.folio}-${numeroCajaActual}`;
+        if (badgeCaja) badgeCaja.textContent = `Caja ${numeroCajaActual}`;
+        if (txtTotalPiezas) txtTotalPiezas.textContent = `0 pzas`;
+
+        document.getElementById('panelEmpaqueCajas')?.classList.remove('hidden');
+
+        // 10. Renderizar checklist, caja actual y tarjetas de cajas ya cerradas
+        renderizarChecklistTraspaso();
+        renderizarTablaCajaActual();
+
+        limpiarContenedorCajasEmpacadas();
+        cajas.forEach(c => {
+            agregarTarjetaCajaCerrada(c.folio_caja, c.piezas_en_caja, cajas.length);
+        });
+
+        reproducirSonidoEscaner('ok');
+        mostrarAlerta('success', `Embarque Folio #${emb.folio} reanudado. Listo para continuar empacando en Caja ${numeroCajaActual}.`);
+
+        setTimeout(() => {
+            const inp = document.getElementById('inputEscanerEmbarqueArticulo');
+            if (inp) {
+                inp.value = '';
+                inp.focus();
+            }
+        }, 300);
+
+    } catch (e) {
+        console.error("Error al continuar embarque:", e);
+        mostrarAlerta('error', 'Error al reanudar empaque del embarque.');
+    }
 }
 
 // ================= SUBCAMBIO EN SUCURSALES =================
