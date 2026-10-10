@@ -196,6 +196,18 @@ def get_tickets():
     fecha_fin = request.args.get('fecha_final', '').strip()
     fecha = request.args.get('fecha', '').strip()
     folio = request.args.get('folio', '').strip()
+    busqueda = request.args.get('busqueda', '').strip()
+    tipo = request.args.get('tipo', '').strip().upper()
+    estatus = request.args.get('estatus', '').strip().upper()
+    orden = request.args.get('orden', 'reciente').strip().lower()
+    monto_min = request.args.get('monto_min', '').strip()
+    monto_max = request.args.get('monto_max', '').strip()
+    limite = request.args.get('limite', '150').strip()
+
+    try:
+        limit_num = max(10, min(500, int(limite)))
+    except:
+        limit_num = 150
 
     hoy = datetime.date.today().strftime("%Y-%m-%d")
     if not fecha_ini and not fecha_fin:
@@ -215,9 +227,24 @@ def get_tickets():
         conn = conectar_db()
         cur = conn.cursor()
 
-        filtros = ["p.TIPO_DOCTO IN ('V', 'F')"]
+        filtros = []
         params = []
 
+        # Tipo de documento
+        if tipo == 'V':
+            filtros.append("p.TIPO_DOCTO = 'V'")
+        elif tipo == 'F':
+            filtros.append("p.TIPO_DOCTO = 'F'")
+        else:
+            filtros.append("p.TIPO_DOCTO IN ('V', 'F')")
+
+        # Estatus
+        if estatus == 'VIGENTES':
+            filtros.append("p.ESTATUS <> 'C'")
+        elif estatus == 'CANCELADOS':
+            filtros.append("p.ESTATUS = 'C'")
+
+        # Fechas o Folio directo
         if folio:
             filtros.append("p.FOLIO LIKE ?")
             params.append(f"%{folio}%")
@@ -229,14 +256,50 @@ def get_tickets():
                 filtros.append("p.FECHA >= ? AND p.FECHA <= ?")
                 params.extend([fecha_ini, fecha_fin])
 
+        # Búsqueda libre (Folio, Cliente o Vendedor)
+        if busqueda:
+            filtros.append("(UPPER(p.FOLIO) LIKE ? OR UPPER(c.NOMBRE) LIKE ? OR UPPER(v.NOMBRE) LIKE ?)")
+            param_b = f"%{busqueda.upper()}%"
+            params.extend([param_b, param_b, param_b])
+
+        # Sucursal / Almacén
         if almacen_id and almacen_id.isdigit():
             filtros.append("p.ALMACEN_ID = ?")
             params.append(int(almacen_id))
 
+        # Filtro de monto mínimo y máximo
+        if monto_min:
+            try:
+                val_min = float(monto_min)
+                filtros.append("(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) >= ?")
+                params.append(val_min)
+            except:
+                pass
+
+        if monto_max:
+            try:
+                val_max = float(monto_max)
+                filtros.append("(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) <= ?")
+                params.append(val_max)
+            except:
+                pass
+
         where_clause = " AND ".join(filtros)
 
+        # Regla de Ordenación
+        if orden == 'monto_desc':
+            order_by = "(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) DESC, p.FECHA DESC"
+        elif orden == 'monto_asc':
+            order_by = "(p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0)) ASC, p.FECHA DESC"
+        elif orden == 'antiguo':
+            order_by = "p.FECHA ASC, p.DOCTO_PV_ID ASC"
+        elif orden == 'folio':
+            order_by = "p.FOLIO ASC"
+        else: # 'reciente'
+            order_by = "p.FECHA DESC, p.DOCTO_PV_ID DESC"
+
         cur.execute(f"""
-            SELECT FIRST 100
+            SELECT FIRST {limit_num}
                 p.DOCTO_PV_ID,
                 TRIM(p.FOLIO) AS FOLIO,
                 p.FECHA,
@@ -244,18 +307,34 @@ def get_tickets():
                 TRIM(a.NOMBRE) AS SUCURSAL,
                 p.IMPORTE_NETO + COALESCE(p.TOTAL_IMPUESTOS, 0) AS TOTAL,
                 p.TIPO_DOCTO,
-                p.ESTATUS
+                p.ESTATUS,
+                TRIM(c.NOMBRE) AS CLIENTE,
+                TRIM(v.NOMBRE) AS VENDEDOR
             FROM DOCTOS_PV p
             JOIN ALMACENES a ON a.ALMACEN_ID = p.ALMACEN_ID
+            LEFT JOIN CLIENTES c ON c.CLIENTE_ID = p.CLIENTE_ID
+            LEFT JOIN VENDEDORES v ON v.VENDEDOR_ID = p.VENDEDOR_ID
             WHERE {where_clause}
-            ORDER BY p.FECHA DESC, p.DOCTO_PV_ID DESC
+            ORDER BY {order_by}
         """, tuple(params))
 
         tickets = []
+        suma_total = 0.0
+        max_ticket = 0.0
+
         for r in cur.fetchall():
             nom_suc = _limpiar_texto(r[4])
-            estatus = str(r[7]).strip() if r[7] else 'N'
+            estatus_row = str(r[7]).strip() if r[7] else 'N'
             tipo_desc = "Factura" if r[6] == 'F' else "Ticket"
+            tot = float(r[5] or 0)
+            nom_cli = _limpiar_texto(r[8]) if r[8] else "Público General"
+            nom_ven = _limpiar_texto(r[9]) if r[9] else ""
+            es_cancelado = estatus_row == 'C'
+
+            if not es_cancelado:
+                suma_total += tot
+                if tot > max_ticket:
+                    max_ticket = tot
 
             tickets.append({
                 "id": int(r[0]),
@@ -263,14 +342,33 @@ def get_tickets():
                 "fecha": str(r[2]),
                 "hora": str(r[3])[:8] if r[3] else "",
                 "sucursal": nom_suc,
-                "total": float(r[5] or 0),
+                "total": tot,
                 "tipo": tipo_desc,
-                "estatus": estatus,
-                "cancelado": estatus == 'C'
+                "estatus": estatus_row,
+                "cancelado": es_cancelado,
+                "cliente": nom_cli,
+                "vendedor": nom_ven
             })
 
         conn.close()
-        return jsonify({"success": True, "tickets": tickets})
+
+        conteo_vigentes = sum(1 for t in tickets if not t["cancelado"])
+        promedio = (suma_total / conteo_vigentes) if conteo_vigentes > 0 else 0.0
+
+        resumen = {
+            "total_tickets": len(tickets),
+            "tickets_vigentes": conteo_vigentes,
+            "suma_total": suma_total,
+            "promedio": promedio,
+            "max_ticket": max_ticket
+        }
+
+        return jsonify({
+            "success": True,
+            "tickets": tickets,
+            "resumen": resumen,
+            "orden": orden
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     finally:

@@ -1224,46 +1224,128 @@
                                 💵
                             </div>
                             <div>
-                                <h2 class="text-base font-black text-slate-900">Módulo Central de Ventas</h2>
-                                <p class="text-xs text-slate-500 font-medium mt-0.5">Consulta de operaciones en Punto de Venta, tickets por sucursal y detalle de partidas facturadas.</p>
+                                <h2 class="text-base font-black text-slate-900">Historial de Tickets y Operaciones</h2>
+                                <p class="text-xs text-slate-500 font-medium mt-0.5">Auditoría de tickets emitidos, facturas de punto de venta, clientes y consulta detallada de partidas.</p>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Filtros de Consulta -->
-                    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex flex-wrap items-center gap-3 flex-1">
-                            <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Sucursal</label>
-                                <select id="selectSucursalVentas" onchange="consultarResumenVentas(); buscarTicketsVentas();" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none min-w-[220px]">
-                                    <option value="">-- Todas las Sucursales (Consolidado) --</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Desde</label>
-                                <input type="date" id="fechaIniVentas" onchange="consultarResumenVentas(); buscarTicketsVentas();" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Hasta</label>
-                                <input type="date" id="fechaFinVentas" onchange="consultarResumenVentas(); buscarTicketsVentas();" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                            </div>
-                            <div class="flex-1 min-w-[200px]">
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Buscar Folio</label>
-                                <input type="text" id="buscarFolioTicket" placeholder="Ej. A-1234 o dejar en blanco" onkeyup="if(event.key==='Enter') buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 pt-4">
-                            <button type="button" onclick="consultarResumenVentas(); buscarTicketsVentas();" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm cursor-pointer flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                <span>Consultar</span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="exportarTicketsCSV()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Exportar Excel / CSV</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- KPI Cards de Ventas -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Panel Integral de Filtros y Ordenación -->
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                        
+                        <!-- Fila 1: Filtros Primarios (Sucursal, Fechas, Tipo, Estatus) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Sucursal</label>
+                                <select id="selectSucursalVentas" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <option value="">-- Todas las Sucursales --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Desde</label>
+                                <input type="date" id="fechaIniVentas" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Hasta</label>
+                                <input type="date" id="fechaFinVentas" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Tipo Documento</label>
+                                <select id="selectTipoDocVentas" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <option value="TODOS">Todos (Tickets + Facturas)</option>
+                                    <option value="V">Solo Tickets</option>
+                                    <option value="F">Solo Facturas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Estatus</label>
+                                <select id="selectEstatusVentas" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <option value="VIGENTES">Solo Vigentes (Activos)</option>
+                                    <option value="TODOS">Todos (Vigentes + Cancelados)</option>
+                                    <option value="CANCELADOS">Solo Cancelados</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Búsqueda libre, Rango de Monto, Límite y Botón -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end pt-1">
+                            <div class="md:col-span-5">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Buscar Folio / Cliente / Vendedor</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </span>
+                                    <input type="text" id="buscarFolioTicket" placeholder="Ej. A-1234, Mostrador, Gómez..." oninput="filtrarTicketsLocalmente()" onkeyup="if(event.key==='Enter') buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Monto Mínimo ($)</label>
+                                <input type="number" id="filtroMontoMinVentas" placeholder="0" step="100" min="0" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Monto Máximo ($)</label>
+                                <input type="number" id="filtroMontoMaxVentas" placeholder="Sin límite" step="100" min="0" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Límite</label>
+                                <select id="selectLimiteTickets" onchange="buscarTicketsVentas();" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                    <option value="100">100</option>
+                                    <option value="200" selected>200</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2 flex items-center gap-2">
+                                <button type="button" onclick="buscarTicketsVentas();" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <span>Buscar</span>
+                                </button>
+                                <button type="button" onclick="limpiarFiltrosTickets();" title="Restablecer filtros" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Fila 3: Barra de Ordenación Rápida y Chips de Monto Rápido -->
+                        <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                            <!-- Botones de acomodo / ordenación -->
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[11px] font-black text-slate-400 uppercase tracking-wide mr-1">Acomodar por:</span>
+                                <button type="button" id="btnOrdenMontoDesc" onclick="cambiarOrdenTickets('monto_desc')" class="btn-orden-ticket inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border border-emerald-300 bg-emerald-50 text-emerald-800 shadow-xs">
+                                    <span>💎</span> Ticket Más Alto
+                                </button>
+                                <button type="button" id="btnOrdenReciente" onclick="cambiarOrdenTickets('reciente')" class="btn-orden-ticket inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                                    <span>🕒</span> Más Recientes
+                                </button>
+                                <button type="button" id="btnOrdenMontoAsc" onclick="cambiarOrdenTickets('monto_asc')" class="btn-orden-ticket inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                                    <span>🔻</span> Menor Monto
+                                </button>
+                                <button type="button" id="btnOrdenAntiguo" onclick="cambiarOrdenTickets('antiguo')" class="btn-orden-ticket inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+                                    <span>⏳</span> Más Antiguos
+                                </button>
+                            </div>
+
+                            <!-- Chips rápidos de monto mínimo -->
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[11px] font-black text-slate-400 uppercase tracking-wide mr-1">Rango Rápido:</span>
+                                <button type="button" onclick="aplicarChipMonto(0)" class="chip-monto-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer">Todos</button>
+                                <button type="button" onclick="aplicarChipMonto(1000)" class="chip-monto-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer">≥ $1,000</button>
+                                <button type="button" onclick="aplicarChipMonto(3000)" class="chip-monto-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer">≥ $3,000</button>
+                                <button type="button" onclick="aplicarChipMonto(5000)" class="chip-monto-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer">≥ $5,000</button>
+                                <button type="button" onclick="aplicarChipMonto(10000)" class="chip-monto-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer">≥ $10,000</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards de Ventas con Ticket Más Alto -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Vendido</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Vendido (Vigente)</div>
                             <div id="ventasResumenTotal" class="text-xl font-black text-slate-900 mt-1">$0.00</div>
                         </div>
                         <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
@@ -1274,25 +1356,39 @@
                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Ticket Promedio</div>
                             <div id="ventasResumenPromedio" class="text-xl font-black text-slate-900 mt-1">$0.00</div>
                         </div>
+                        <div class="bg-white p-4 rounded-3xl border border-emerald-200 bg-gradient-to-br from-white to-emerald-50/40 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">💎 Ticket Más Alto</span>
+                                <span class="text-[10px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Top 1</span>
+                            </div>
+                            <div id="ventasResumenTicketMax" class="text-xl font-black text-emerald-800 mt-1">$0.00</div>
+                        </div>
                     </div>
 
                     <!-- Tabla de Tickets Recientes -->
                     <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-                        <h3 class="text-sm font-black text-slate-900">Listado de Operaciones y Tickets Recientes</h3>
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div>
+                                <h3 class="text-sm font-black text-slate-900">Listado de Operaciones y Tickets</h3>
+                                <p id="subtituloTicketsContador" class="text-xs text-slate-400 font-medium">Cargando información...</p>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="text-[11px] font-black uppercase text-slate-400 border-b border-slate-100">
-                                        <th class="py-2.5 px-3">Folio</th>
-                                        <th class="py-2.5 px-3">Fecha y Hora</th>
+                                        <th class="py-2.5 px-3 text-center w-12">#</th>
+                                        <th class="py-2.5 px-3 cursor-pointer hover:text-slate-800" onclick="cambiarOrdenTickets('folio')">Folio ⇕</th>
+                                        <th class="py-2.5 px-3 cursor-pointer hover:text-slate-800" onclick="cambiarOrdenTickets(ordenActualVentas==='reciente'?'antiguo':'reciente')">Fecha y Hora ⇕</th>
                                         <th class="py-2.5 px-3">Sucursal</th>
+                                        <th class="py-2.5 px-3">Cliente / Razón Social</th>
                                         <th class="py-2.5 px-3 text-center">Tipo / Estatus</th>
-                                        <th class="py-2.5 px-3 text-right">Total</th>
+                                        <th class="py-2.5 px-3 text-right cursor-pointer hover:text-emerald-700" onclick="cambiarOrdenTickets(ordenActualVentas==='monto_desc'?'monto_asc':'monto_desc')">Total ($) ⇕</th>
                                         <th class="py-2.5 px-3 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyTicketsVenta">
-                                    <tr><td colspan="6" class="py-8 text-center text-slate-400">Presione 'Consultar' para ver tickets.</td></tr>
+                                    <tr><td colspan="8" class="py-8 text-center text-slate-400">Presione 'Consultar' para ver tickets.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -6602,7 +6698,7 @@
     <script src="/static/js/paleta_tema.js?v=20261009_v6"></script>
     <script src="/static/js/app_core.js?v=20261009_v7"></script>
     <script src="/static/js/modulo_dashboard.js?v=20261009_v7"></script>
-    <script src="/static/js/modulo_ventas.js?v=20261009_v6"></script>
+    <script src="/static/js/modulo_ventas.js?v=20261009_v7"></script>
     <script src="/static/js/modulo_pv.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_administracion.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_almacen.js?v=20261009_v6"></script>
