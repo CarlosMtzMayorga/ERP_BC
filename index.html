@@ -3395,88 +3395,10 @@
                     </div>
 
                     <!-- ================= SUB-MÓDULO 5: EMBARQUES Y EMPAQUE (ZEBRA + TRACKING) ================= -->
-                    <div id="subAlmEmbarquesContent" class="hidden space-y-4">
-                        <!-- Hero Banner y Mini Dashboard de Tarjetas Grandes -->
-                        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 p-5 rounded-3xl text-white shadow-xl border border-blue-900/40 space-y-4">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl border border-blue-500/30 shadow-inner">
-                                        🚚
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <h3 class="text-base font-black uppercase tracking-wide text-white">Embarques y Empaque de Mercancía</h3>
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                                                Etiquetas Zebra & Cajas
-                                            </span>
-                                        </div>
-                                        <p class="text-xs text-slate-300 font-medium">Surtido y empaque de resurtidos o pedidos a clientes en cajas foliadas con guion (10003-1, 10003-2), escaneo USB y tracking en ruta.</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" onclick="cargarDashboardEmbarques()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-950 transition cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                        <span>Actualizar Estatus</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Dashboard con Tarjetas Grandes de Estatus -->
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-                                <!-- 1: Total Pedidos/Embarques -->
-                                <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-700/60 shadow-sm flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-300 flex items-center justify-center text-lg">
-                                        📋
-                                    </div>
-                                    <div>
-                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Total Embarques</div>
-                                        <div id="kpiEmbarquesTotal" class="text-xl font-black text-white font-mono">0</div>
-                                        <div class="text-[9px] text-slate-400 font-medium">Histórico activo</div>
-                                    </div>
-                                </div>
-
-                                <!-- 2: Preparando / Empacando -->
-                                <div class="bg-amber-950/40 p-3.5 rounded-2xl border border-amber-600/40 shadow-sm flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
-                                        📦
-                                    </div>
-                                    <div>
-                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-amber-400">En Preparación</div>
-                                        <div id="kpiEmbarquesPreparando" class="text-xl font-black text-amber-300 font-mono">0</div>
-                                        <div class="text-[9px] text-amber-400/80 font-medium">Cajas empacándose</div>
-                                    </div>
-                                </div>
-
-                                <!-- 3: En Tránsito / Chofer -->
-                                <div class="bg-blue-950/40 p-3.5 rounded-2xl border border-blue-500/40 shadow-sm flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
-                                        🚛
-                                    </div>
-                                    <div>
-                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400">En Tránsito</div>
-                                        <div id="kpiEmbarquesTransito" class="text-xl font-black text-blue-300 font-mono">0</div>
-                                        <div class="text-[9px] text-blue-400/80 font-medium">En ruta con chofer</div>
-                                    </div>
-                                </div>
-
-                                <!-- 4: Recibidos en Sucursal -->
-                                <div class="bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-600/40 shadow-sm flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
-                                        ✅
-                                    </div>
-                                    <div>
-                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400">Recibidos</div>
-                                        <div id="kpiEmbarquesRecibido" class="text-xl font-black text-emerald-300 font-mono">0</div>
-                                        <div class="text-[9px] text-emerald-400/80 font-medium">Entregados en tienda</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Barra de Navegación Interna de Embarques -->
-                        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2">
+                    <div id="subAlmEmbarquesContent" class="hidden space-y-3">
+                        <!-- Barra de Navegación Interna de Embarques (Compacta y sin banner superior que reste visibilidad) -->
+                        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <button type="button" id="tabSubEmbarquesListado" onclick="cambiarSubTabEmbarquesInterno('listado')" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 bg-slate-900 text-white shadow-sm cursor-pointer">
                                     <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                     <span>Listado y Tracking</span>
@@ -3488,6 +3410,12 @@
                                 <button type="button" id="tabSubEmbarquesChofer" onclick="cambiarSubTabEmbarquesInterno('chofer')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">
                                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                                     <span>Salida Chofer (Escanear Cajas)</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="cargarDashboardEmbarques(); cargarTraspasosPendientesEmbarque();" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    <span>Actualizar</span>
                                 </button>
                             </div>
                         </div>
@@ -6727,7 +6655,7 @@
     <script src="/static/js/modulo_pv.js?v=20261010_v2"></script>
     <script src="/static/js/modulo_administracion.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_almacen.js?v=20261009_v6"></script>
-    <script src="/static/js/modulo_embarques.js?v=20261010_v2"></script>
+    <script src="/static/js/modulo_embarques.js?v=20261010_v3"></script>
     <script src="/static/js/modulo_compras.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_ciosa.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_traspasos.js?v=20261009_v6"></script>
