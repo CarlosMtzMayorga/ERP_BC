@@ -2,7 +2,7 @@ import datetime
 from decimal import Decimal
 from collections import defaultdict
 from flask import Blueprint, request, jsonify, session
-from app.db import conectar_db, resolver_listas_precios, conectar_sqlite
+from app.db import conectar_db, resolver_listas_precios, conectar_sqlite, detectar_columna_equivalencia
 from app.config import get_current_dsn, conn_string_microsip
 
 pv_bp = Blueprint('pv_bp', __name__)
@@ -290,6 +290,80 @@ def get_vehiculos_productos():
         return jsonify({"success": False, "error": str(e), "productos": []}), 500
 
 # ================= 3. BÚSQUEDA Y DETALLE DE ARTÍCULOS POS =================
+
+@pv_bp.route('/api/pv/articulos/sugerencias', methods=['GET'])
+def sugerencias_articulos_pos():
+    q = request.args.get('q', '').strip().upper()
+    almacen_id = request.args.get('almacen_id', '').strip()
+    if len(q) < 2:
+        return jsonify([])
+
+    conn = None
+    try:
+        conn = conectar_db()
+        cur = conn.cursor()
+        col_equiv = detectar_columna_equivalencia(cur)
+        join_equiv = f"LEFT JOIN LIBRES_ARTICULOS la ON la.ARTICULO_ID = a.ARTICULO_ID" if col_equiv else ""
+        col_equiv_select = f"COALESCE(TRIM(la.{col_equiv}), '')" if col_equiv else "''"
+        filtro_equiv = f"OR UPPER(la.{col_equiv}) LIKE ?" if col_equiv else ""
+
+        alm_id_num = int(almacen_id) if almacen_id and almacen_id.isdigit() else (session.get('sucursal_id') or 620110)
+
+        listas = resolver_listas_precios(conn)
+        precio_id = listas.get("talleres", 67032) or 42
+
+        params = [alm_id_num, precio_id, f"%{q}%", f"%{q}%"]
+        if col_equiv:
+            params.append(f"%{q}%")
+        params.extend([q, f"{q}%", f"{q}%"])
+
+        cur.execute(f"""
+            SELECT FIRST 15
+                ca.CLAVE_ARTICULO,
+                a.NOMBRE,
+                {col_equiv_select} AS EQUIV,
+                a.ARTICULO_ID,
+                (SELECT COALESCE(SUM(s.ENTRADAS_UNIDADES - s.SALIDAS_UNIDADES), 0)
+                 FROM SALDOS_IN s
+                 WHERE s.ARTICULO_ID = a.ARTICULO_ID AND s.ALMACEN_ID = ?) AS STK_LOCAL,
+                (SELECT FIRST 1 p.PRECIO
+                 FROM PRECIOS_ARTICULOS p
+                 WHERE p.ARTICULO_ID = a.ARTICULO_ID AND p.PRECIO_EMPRESA_ID = ?) AS PRECIO
+            FROM CLAVES_ARTICULOS ca
+            JOIN ARTICULOS a ON a.ARTICULO_ID = ca.ARTICULO_ID
+            JOIN ROLES_CLAVES_ARTICULOS r ON r.ROL_CLAVE_ART_ID = ca.ROL_CLAVE_ART_ID AND r.ES_PPAL = 'S'
+            {join_equiv}
+            WHERE UPPER(ca.CLAVE_ARTICULO) LIKE ?
+               OR UPPER(a.NOMBRE) LIKE ?
+               {filtro_equiv}
+            ORDER BY
+                CASE
+                    WHEN UPPER(ca.CLAVE_ARTICULO) = ? THEN 0
+                    WHEN UPPER(ca.CLAVE_ARTICULO) LIKE ? THEN 1
+                    WHEN UPPER(a.NOMBRE) LIKE ? THEN 2
+                    ELSE 3
+                END
+        """, tuple(params))
+
+        res = []
+        for r in cur.fetchall():
+            res.append({
+                "clave": str(r[0]).strip(),
+                "nombre": str(r[1]).strip(),
+                "equivalencia": str(r[2]).strip() if r[2] else "",
+                "articulo_id": int(r[3]),
+                "stock_local": float(r[4] or 0),
+                "precio": float(r[5] or 0)
+            })
+
+        cur.close()
+        conn.close()
+        return jsonify(res)
+    except Exception as e:
+        if conn:
+            try: conn.close()
+            except: pass
+        return jsonify([])
 
 @pv_bp.route('/api/pv/articulos/buscar', methods=['GET'])
 def buscar_articulos_pos():

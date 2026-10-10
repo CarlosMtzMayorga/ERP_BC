@@ -80,13 +80,15 @@ function generarPaletaLineasCorporativa(hexBase) {
     ];
 }
 
-async function cargarDashboard(periodo = 'mes_actual') {
+async function cargarDashboard(periodo = 'mes_actual', esSilencioso = false) {
     const loader = document.getElementById('dashboardLoader');
     const content = document.getElementById('dashboardContent');
     const btnRefrescar = document.getElementById('btnRefrescarDashboard');
 
-    if (loader) loader.classList.remove('hidden');
-    if (content) content.classList.add('opacity-50');
+    if (!esSilencioso) {
+        if (loader) loader.classList.remove('hidden');
+        if (content) content.classList.add('opacity-50');
+    }
     if (btnRefrescar) btnRefrescar.classList.add('animate-spin');
 
     try {
@@ -107,12 +109,14 @@ async function cargarDashboard(periodo = 'mes_actual') {
         const badgeActualizado = document.getElementById('badgeUltimaActualizacion');
         if (badgeActualizado) {
             const ahora = new Date();
-            badgeActualizado.textContent = `Actualizado: ${ahora.toLocaleTimeString()}`;
+            badgeActualizado.textContent = esSilencioso 
+                ? `Actualizado: ${ahora.toLocaleTimeString()} (Auto)` 
+                : `Actualizado: ${ahora.toLocaleTimeString()}`;
         }
 
     } catch (err) {
         console.error("Error al cargar dashboard:", err);
-        if (typeof mostrarAlerta === 'function') {
+        if (!esSilencioso && typeof mostrarAlerta === 'function') {
             mostrarAlerta('danger', `Error al cargar indicadores: ${err.message}`, 4000);
         }
     } finally {
@@ -491,6 +495,46 @@ function renderizarTablaSucursales(sucursales) {
     }).join('');
 }
 
+// Auto-refresco automático configurable para la Pantalla de Inicio / Dashboard
+let timerAutoRefrescoDashboard = null;
+
+function iniciarAutoRefrescoDashboard() {
+    const selAuto = document.getElementById('selectAutoRefrescoDashboard');
+    if (!selAuto) return;
+
+    // Recuperar preferencia previa guardada o usar 3 minutos por defecto
+    const guardado = localStorage.getItem('erp_dashboard_autorefresh_mins');
+    if (guardado !== null) {
+        selAuto.value = guardado;
+    }
+
+    function configurarTimer() {
+        if (timerAutoRefrescoDashboard) {
+            clearInterval(timerAutoRefrescoDashboard);
+            timerAutoRefrescoDashboard = null;
+        }
+
+        const mins = parseInt(selAuto.value, 10);
+        localStorage.setItem('erp_dashboard_autorefresh_mins', mins);
+
+        if (mins > 0) {
+            const ms = mins * 60 * 1000;
+            timerAutoRefrescoDashboard = setInterval(() => {
+                const dashContent = document.getElementById('moduloDashboardContent');
+                // Solo refrescar si el módulo de inicio está visible en pantalla
+                if (dashContent && !dashContent.classList.contains('hidden')) {
+                    const selPeriodo = document.getElementById('selectPeriodoDashboard');
+                    const periodo = selPeriodo ? selPeriodo.value : 'mes_actual';
+                    cargarDashboard(periodo, true);
+                }
+            }, ms);
+        }
+    }
+
+    selAuto.addEventListener('change', configurarTimer);
+    configurarTimer();
+}
+
 // Inicialización de eventos al cargar documento
 document.addEventListener('DOMContentLoaded', () => {
     const selPeriodo = document.getElementById('selectPeriodoDashboard');
@@ -507,4 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cargarDashboard(p);
         });
     }
+
+    iniciarAutoRefrescoDashboard();
 });

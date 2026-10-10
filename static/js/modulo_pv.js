@@ -33,6 +33,7 @@ function inicializarModuloPuntoVenta(forzar = false) {
     }
     pvIniciarReloj();
     pvInicializarEventosCliente();
+    pvInicializarAutocompletadoArticulos();
     pvCargarFiltrosVehicularesIniciales();
     pvCargarSucursalYVendedor();
     pvCargarArticulosIniciales();
@@ -514,7 +515,183 @@ function pvLimpiarFiltrosVehiculares() {
     pvCargarArticulosIniciales();
 }
 
+let pvTimerSugerenciasArt = null;
+let pvSugerenciasArtCache = [];
+let pvIndiceSugerenciaArtActiva = -1;
+
+function pvInicializarAutocompletadoArticulos() {
+    const input = document.getElementById('pvInputBusquedaArticulo');
+    const dropdown = document.getElementById('pvDropdownSugerenciasArticulo');
+    const btnClear = document.getElementById('pvBtnLimpiarBusqArt');
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', function() {
+        const query = this.value.trim().toUpperCase();
+        if (btnClear) btnClear.classList.toggle('hidden', !query);
+        clearTimeout(pvTimerSugerenciasArt);
+        pvIndiceSugerenciaArtActiva = -1;
+
+        if (query.length < 2) {
+            pvCerrarDropdownSugerenciasArticulo();
+            return;
+        }
+
+        pvTimerSugerenciasArt = setTimeout(async () => {
+            try {
+                const almId = PV_STATE.sucursalActualId || '';
+                const res = await fetch(`/api/pv/articulos/sugerencias?q=${encodeURIComponent(query)}&almacen_id=${encodeURIComponent(almId)}`);
+                const articulos = await res.json();
+                pvSugerenciasArtCache = Array.isArray(articulos) ? articulos : [];
+                pvRenderizarSugerenciasArticulos(query);
+            } catch (e) {
+                console.warn("Aviso al consultar sugerencias de artículos:", e);
+                pvCerrarDropdownSugerenciasArticulo();
+            }
+        }, 180);
+    });
+
+    input.addEventListener('keydown', function(e) {
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            const items = dropdown.querySelectorAll('.pv-sugerencia-art-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    pvIndiceSugerenciaArtActiva = (pvIndiceSugerenciaArtActiva + 1) % items.length;
+                    pvActualizarFocoSugerencia(items);
+                }
+                return;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    pvIndiceSugerenciaArtActiva = (pvIndiceSugerenciaArtActiva - 1 + items.length) % items.length;
+                    pvActualizarFocoSugerencia(items);
+                }
+                return;
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (pvIndiceSugerenciaArtActiva >= 0 && pvIndiceSugerenciaArtActiva < pvSugerenciasArtCache.length) {
+                    const sel = pvSugerenciasArtCache[pvIndiceSugerenciaArtActiva];
+                    pvSeleccionarSugerenciaArticulo(sel.clave);
+                    return;
+                } else {
+                    pvCerrarDropdownSugerenciasArticulo();
+                    pvEjecutarBusquedaArticulos();
+                    return;
+                }
+            } else if (e.key === 'Escape') {
+                pvCerrarDropdownSugerenciasArticulo();
+                return;
+            }
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            pvCerrarDropdownSugerenciasArticulo();
+            pvEjecutarBusquedaArticulos();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (input && !input.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
+            pvCerrarDropdownSugerenciasArticulo();
+        }
+    });
+}
+
+function pvRenderizarSugerenciasArticulos(query) {
+    const dropdown = document.getElementById('pvDropdownSugerenciasArticulo');
+    if (!dropdown) return;
+    dropdown.innerHTML = '';
+
+    if (!pvSugerenciasArtCache || pvSugerenciasArtCache.length === 0) {
+        dropdown.innerHTML = `
+            <div class="p-4 text-center text-xs text-slate-400 italic">
+                No se encontraron refacciones con "<strong>${query}</strong>"
+            </div>
+        `;
+        dropdown.classList.remove('hidden');
+        return;
+    }
+
+    pvSugerenciasArtCache.forEach((art, idx) => {
+        const item = document.createElement('div');
+        item.className = "pv-sugerencia-art-item p-3 hover:bg-indigo-50/80 cursor-pointer flex items-center justify-between text-xs transition border-b border-slate-100 last:border-0";
+        item.dataset.index = idx;
+
+        const claveHigh = pvResaltarCoincidencia(art.clave, query);
+        const nomHigh = pvResaltarCoincidencia(art.nombre, query);
+        const eqBadge = art.equivalencia ? `<span class="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">Eq: ${art.equivalencia}</span>` : '';
+
+        const stockLocal = Number(art.stock_local || 0);
+        const stockBadge = stockLocal > 0
+            ? `<span class="inline-flex items-center gap-1 font-black text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">✅ ${stockLocal} pzas</span>`
+            : `<span class="inline-flex items-center gap-1 font-bold text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">Sin stock local</span>`;
+
+        const precioHtml = art.precio > 0
+            ? `<span class="font-black text-slate-900 text-xs">${formatearMoneda(art.precio)}</span>`
+            : '';
+
+        item.innerHTML = `
+            <div class="truncate mr-3 flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-mono font-black text-indigo-700 text-xs">${claveHigh}</span>
+                    ${eqBadge}
+                </div>
+                <div class="text-[11px] text-slate-600 truncate mt-0.5 font-medium">${nomHigh}</div>
+            </div>
+            <div class="text-right flex flex-col items-end gap-0.5 shrink-0">
+                ${precioHtml}
+                ${stockBadge}
+            </div>
+        `;
+
+        item.addEventListener('click', () => {
+            pvSeleccionarSugerenciaArticulo(art.clave);
+        });
+
+        dropdown.appendChild(item);
+    });
+
+    dropdown.classList.remove('hidden');
+}
+
+function pvActualizarFocoSugerencia(items) {
+    items.forEach((it, idx) => {
+        if (idx === pvIndiceSugerenciaArtActiva) {
+            it.classList.add('bg-indigo-100/90', 'ring-1', 'ring-indigo-300');
+            it.scrollIntoView({ block: 'nearest' });
+        } else {
+            it.classList.remove('bg-indigo-100/90', 'ring-1', 'ring-indigo-300');
+        }
+    });
+}
+
+function pvSeleccionarSugerenciaArticulo(clave) {
+    const input = document.getElementById('pvInputBusquedaArticulo');
+    const btnClear = document.getElementById('pvBtnLimpiarBusqArt');
+    if (input) {
+        input.value = clave;
+        if (btnClear) btnClear.classList.remove('hidden');
+    }
+    pvCerrarDropdownSugerenciasArticulo();
+    pvEjecutarBusquedaArticulos(clave);
+}
+
+function pvCerrarDropdownSugerenciasArticulo() {
+    const dropdown = document.getElementById('pvDropdownSugerenciasArticulo');
+    if (dropdown) dropdown.classList.add('hidden');
+    pvIndiceSugerenciaArtActiva = -1;
+}
+
+function pvResaltarCoincidencia(texto, query) {
+    if (!texto) return '';
+    if (!query) return texto;
+    const reg = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return texto.replace(reg, '<span class="bg-amber-200 text-slate-900 rounded-xs px-0.5 font-black">$1</span>');
+}
+
 async function pvEjecutarBusquedaArticulos(terminoForzado) {
+    pvCerrarDropdownSugerenciasArticulo();
     const input = document.getElementById('pvInputBusquedaArticulo');
     const q = (terminoForzado !== undefined) ? terminoForzado : (input ? input.value.trim() : '');
     const anio = document.getElementById('pvFiltroAnio')?.value || '';
@@ -581,6 +758,7 @@ async function pvEjecutarBusquedaArticulos(terminoForzado) {
 }
 
 function pvLimpiarBusquedaArticulos() {
+    pvCerrarDropdownSugerenciasArticulo();
     const input = document.getElementById('pvInputBusquedaArticulo');
     if (input) {
         input.value = '';

@@ -446,8 +446,21 @@
                                 </select>
                             </div>
 
+                            <!-- Selector de Auto-refresco -->
+                            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-1.5 text-xs shadow-2xs">
+                                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-slate-500 font-bold text-[11px]">Auto-refrescar:</span>
+                                <select id="selectAutoRefrescoDashboard" class="bg-white text-slate-800 font-bold text-xs focus:outline-none cursor-pointer">
+                                    <option value="1">Cada 1 min</option>
+                                    <option value="3" selected>Cada 3 min</option>
+                                    <option value="5">Cada 5 min</option>
+                                    <option value="10">Cada 10 min</option>
+                                    <option value="0">Desactivado</option>
+                                </select>
+                            </div>
+
                             <!-- Botón de Refrescar -->
-                            <button type="button" id="btnRefrescarDashboard" class="p-2.5 btn-theme-primary text-white rounded-2xl transition flex items-center justify-center cursor-pointer" title="Actualizar datos">
+                            <button type="button" id="btnRefrescarDashboard" class="p-2.5 btn-theme-primary text-white rounded-2xl transition flex items-center justify-center cursor-pointer shadow-xs" title="Actualizar datos">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             </button>
 
@@ -790,14 +803,17 @@
                                 <!-- Input Principal de Búsqueda de Refacciones -->
                                 <div class="flex flex-col sm:flex-row items-center gap-2">
                                     <div class="relative flex-1 w-full">
-                                        <input type="text" id="pvInputBusquedaArticulo"
+                                        <input type="text" id="pvInputBusquedaArticulo" autocomplete="off" spellcheck="false"
                                                placeholder="Buscar por código, descripción, número de parte, equivalencia, marca o VIN..."
-                                               onkeyup="if(event.key==='Enter') pvEjecutarBusquedaArticulos();"
-                                               class="w-full text-xs sm:text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 pl-10 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
+                                               class="w-full text-xs sm:text-sm font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 pl-10 pr-9 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
                                         <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
                                         <button type="button" id="pvBtnLimpiarBusqArt" onclick="pvLimpiarBusquedaArticulos()" class="hidden absolute right-3.5 top-2 text-slate-400 hover:text-slate-700 text-base font-bold cursor-pointer">
                                             &times;
                                         </button>
+                                        <!-- Dropdown flotante de Autocompletado y Sugerencias Inteligentes -->
+                                        <div id="pvDropdownSugerenciasArticulo"
+                                             class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto z-50 divide-y divide-slate-100">
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-1.5 w-full sm:w-auto shrink-0 flex-wrap">
                                         <button type="button" onclick="pvEjecutarBusquedaArticulos()" class="w-full sm:w-auto h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-indigo-600/20 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
@@ -6697,9 +6713,9 @@
     <!-- SCRIPTS MODULARES -->
     <script src="/static/js/paleta_tema.js?v=20261009_v6"></script>
     <script src="/static/js/app_core.js?v=20261009_v7"></script>
-    <script src="/static/js/modulo_dashboard.js?v=20261009_v7"></script>
-    <script src="/static/js/modulo_ventas.js?v=20261009_v7"></script>
-    <script src="/static/js/modulo_pv.js?v=20261009_v6"></script>
+    <script src="/static/js/modulo_dashboard.js?v=20261010_v1"></script>
+    <script src="/static/js/modulo_ventas.js?v=20261010_v1"></script>
+    <script src="/static/js/modulo_pv.js?v=20261010_v1"></script>
     <script src="/static/js/modulo_administracion.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_almacen.js?v=20261009_v6"></script>
     <script src="/static/js/modulo_embarques.js?v=20261009_v6"></script>
