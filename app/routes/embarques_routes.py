@@ -823,7 +823,9 @@ def buscar_origen_traspaso():
         cur = conn.cursor()
 
         if q:
-            # Buscar traspasos específicos por folio o ID
+            # Buscar traspasos específicos por folio o ID (limpiando #, espacios y ceros)
+            q_clean = q.replace('#', '').strip().upper()
+            doc_id_num = int(q_clean) if q_clean.isdigit() else -1
             cur.execute("""
                 SELECT FIRST 15
                     doc.DOCTO_IN_ID,
@@ -837,11 +839,11 @@ def buscar_origen_traspaso():
                 FROM DOCTOS_IN doc
                 LEFT JOIN ALMACENES ao ON ao.ALMACEN_ID = doc.ALMACEN_ID
                 LEFT JOIN ALMACENES ad ON ad.ALMACEN_ID = doc.ALMACEN_DESTINO_ID
-                WHERE (UPPER(TRIM(doc.FOLIO)) LIKE ? OR doc.DOCTO_IN_ID = ?)
+                WHERE (UPPER(TRIM(doc.FOLIO)) = ? OR UPPER(TRIM(doc.FOLIO)) CONTAINING ? OR doc.DOCTO_IN_ID = ?)
                   AND doc.ALMACEN_DESTINO_ID IS NOT NULL
                   AND doc.CANCELADO = 'N'
                 ORDER BY doc.DOCTO_IN_ID DESC
-            """, (f"%{q}%", int(q) if q.isdigit() else -1))
+            """, (q_clean, q_clean, doc_id_num))
         else:
             # Desplegar los traspasos pendientes de embarcar más recientes (CEDIS a Sucursales)
             cur.execute("""

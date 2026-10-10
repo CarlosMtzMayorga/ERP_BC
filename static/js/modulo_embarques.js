@@ -502,16 +502,43 @@ function filtrarTraspasosCards(termino) {
 
 async function seleccionarTraspasoPendiente(folio) {
     const inputDoc = document.getElementById('inputNuevoEmbarqueDoctoOrigen');
+    const folioLimpio = String(folio || '').replace('#', '').trim();
     if (inputDoc) {
-        inputDoc.value = folio;
+        inputDoc.value = folioLimpio;
     }
+
+    // 1. Si ya tenemos el traspaso precargado en memoria, usarlo de inmediato
+    const docCache = traspasosPendientesCache.find(t => String(t.folio).toUpperCase().replace('#', '').trim() === folioLimpio.toUpperCase());
+    if (docCache) {
+        const selSuc = document.getElementById('selectNuevoEmbarqueDestinoSucursal');
+        if (selSuc && docCache.almacen_destino_id) {
+            selSuc.value = docCache.almacen_destino_id;
+        }
+
+        partidasEmbarquePlanificadas = (docCache.partidas || []).map(p => ({
+            articulo_id: p.articulo_id,
+            clave: p.clave,
+            nombre: p.nombre,
+            unidades_requeridas: p.unidades,
+            unidades_empacadas: 0
+        }));
+
+        reproducirSonidoEscaner('ok');
+        mostrarAlerta('success', `Traspaso #${docCache.folio} cargado con ${partidasEmbarquePlanificadas.length} artículos (${docCache.total_piezas || 0} pzas) para ${docCache.almacen_destino_nombre}.`);
+        
+        // Scroll suave al paso 1 para iniciar empaque
+        document.getElementById('inputNuevoEmbarqueDoctoOrigen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // 2. Si no estaba en caché, buscarlo vía API
     await cargarItemsDesdeOrigenMicrosip();
 }
 
 // ================= BÚSQUEDA DE DOCUMENTO DE ORIGEN (MICROSIP) =================
 async function cargarItemsDesdeOrigenMicrosip() {
     const inputDoc = document.getElementById('inputNuevoEmbarqueDoctoOrigen');
-    const docRef = (inputDoc?.value || '').trim();
+    const docRef = (inputDoc?.value || '').replace('#', '').trim();
     if (!docRef) {
         mostrarAlerta('error', 'Por favor ingresa un folio o documento de referencia.');
         return;
@@ -542,7 +569,7 @@ async function cargarItemsDesdeOrigenMicrosip() {
         }));
 
         reproducirSonidoEscaner('ok');
-        mostrarAlerta('success', `Documento ${primerRes.folio} encontrado con ${partidasEmbarquePlanificadas.length} artículos.`);
+        mostrarAlerta('success', `Documento #${primerRes.folio} encontrado con ${partidasEmbarquePlanificadas.length} artículos (${primerRes.total_piezas || 0} pzas).`);
     } catch (e) {
         mostrarAlerta('error', 'Error al buscar documento en Microsip.');
     }
